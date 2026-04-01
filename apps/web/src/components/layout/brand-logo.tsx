@@ -28,7 +28,7 @@ export function BrandLogo({
         )}
       >
         <Image
-          src="/flowforge-icon.png"
+          src="/flowforge-newicon.png"
           alt="FlowForge"
           width={iconSize}
           height={iconSize}
