@@ -12,33 +12,23 @@ export default async function Home() {
 
   return (
     <main className="relative overflow-hidden">
-      <div className="relative mx-auto max-w-7xl px-4 pb-16 pt-0 sm:px-6 lg:px-8">
-        <header className="flex items-start justify-end gap-6 pt-0 pb-1">
-          <nav className="hidden items-center gap-3 md:flex">
-            {marketingNav.map((item) => (
-              <Link key={item.href} href={item.href} className="rounded-lg px-4 py-2 text-sm font-medium text-foreground transition hover:bg-muted">
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-        </header>
-
-        <section className="grid items-start gap-6 pt-0 pb-4 lg:-mt-8 lg:grid-cols-[1.1fr_0.9fr] lg:pb-5">
-          <div className="space-y-6 lg:-mt-10">
+      <div className="relative mx-auto max-w-7xl px-4 pb-16 pt-4 sm:px-6 lg:px-8">
+        <section className="grid items-start gap-6 pb-4 lg:grid-cols-[1.1fr_0.9fr] lg:gap-8 lg:pb-5">
+          <div className="space-y-6">
             <BrandLogo hero className="w-fit" />
-            <div className="inline-flex items-center gap-2 rounded-[0.65rem] border border-border bg-surface px-3 py-2 text-sm shadow-soft">
+            <div className="inline-flex flex-wrap items-center gap-2 rounded-[0.65rem] border border-border bg-surface px-3 py-2 text-sm shadow-soft">
               <Badge variant="accent">FlowForge platform</Badge>
               <span>Boards, reporting, and team visibility in one product</span>
             </div>
             <div className="space-y-5">
-              <h1 className="max-w-3xl text-5xl font-semibold tracking-tight text-foreground sm:text-[4.2rem]">
+              <h1 className="max-w-3xl text-[3rem] font-semibold tracking-tight text-foreground sm:text-[3.7rem] lg:text-[4.2rem]">
                 Workforce clarity, forged into a real operating dashboard.
               </h1>
-              <p className="max-w-2xl text-lg leading-8 text-muted-foreground">
+              <p className="max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg">
                 FlowForge gives leaders and teams one place to manage boards, assignments, reporting cycles, MSRs, and executive-ready summaries without patching workflows together.
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
               <ButtonLink href="/dashboard" size="lg">
                 Open demo dashboard
               </ButtonLink>
@@ -53,54 +43,65 @@ export default async function Home() {
             </div>
           </div>
 
-          <Card className="overflow-hidden">
-            <CardHeader>
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">Live product snapshot</p>
-                  <h2 className="mt-2 text-xl font-semibold">Operations console</h2>
+          <div className="space-y-4 sm:space-y-5">
+            <header className="flex items-center justify-start gap-3 sm:justify-end">
+              <nav className="flex flex-wrap items-center gap-1.5 sm:gap-3">
+                {marketingNav.map((item) => (
+                  <Link key={item.href} href={item.href} className="rounded-lg px-3 py-2 text-sm font-medium text-foreground transition hover:bg-muted sm:px-4">
+                    {item.label}
+                  </Link>
+                ))}
+              </nav>
+            </header>
+            <Card className="overflow-hidden">
+              <CardHeader>
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">Live product snapshot</p>
+                    <h2 className="mt-2 text-xl font-semibold">Operations console</h2>
+                  </div>
+                  <Badge variant="warning">2 blockers</Badge>
                 </div>
-                <Badge variant="warning">2 blockers</Badge>
-              </div>
-            </CardHeader>
-            <CardBody className="space-y-4">
-              <div className="grid gap-3 sm:grid-cols-3">
-                <Snapshot label="OEE trend" value="89%" detail="up 4.5 this month" />
-                <Snapshot label="Output" value="1.2k" detail="units completed" />
-                <Snapshot label="Scrap" value="2.1%" detail="under target band" />
-              </div>
-              <div className="grid gap-3 sm:grid-cols-[1.25fr_0.75fr]">
-                <div className="rounded-[0.65rem] border border-border bg-surface-2 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Production forecast vs. actual</p>
-                  <div className="mt-5 grid h-44 grid-cols-7 items-end gap-3">
-                    {[
-                      [44, 68, 26],
-                      [58, 80, 34],
-                      [52, 76, 28],
-                      [60, 86, 22],
-                      [63, 91, 25],
-                      [55, 84, 31],
-                      [49, 73, 27],
-                    ].map((bars, index) => (
-                      <div key={index} className="flex h-full flex-col justify-end gap-1">
-                        <div className="rounded-t bg-[#f7b733]" style={{ height: `${bars[2]}px` }} />
-                        <div className="rounded-t bg-accent-2" style={{ height: `${bars[1]}px` }} />
-                        <div className="rounded-t bg-success" style={{ height: `${bars[0]}px` }} />
-                      </div>
-                    ))}
+              </CardHeader>
+              <CardBody className="space-y-4">
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <Snapshot label="OEE trend" value="89%" detail="up 4.5 this month" />
+                  <Snapshot label="Output" value="1.2k" detail="units completed" />
+                  <Snapshot label="Scrap" value="2.1%" detail="under target band" />
+                </div>
+                <div className="grid gap-3 sm:grid-cols-[1.25fr_0.75fr]">
+                  <div className="rounded-[0.65rem] border border-border bg-surface-2 p-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Production forecast vs. actual</p>
+                    <div className="mt-5 grid h-44 grid-cols-7 items-end gap-3">
+                      {[
+                        [44, 68, 26],
+                        [58, 80, 34],
+                        [52, 76, 28],
+                        [60, 86, 22],
+                        [63, 91, 25],
+                        [55, 84, 31],
+                        [49, 73, 27],
+                      ].map((bars, index) => (
+                        <div key={index} className="flex h-full flex-col justify-end gap-1">
+                          <div className="rounded-t bg-[#f7b733]" style={{ height: `${bars[2]}px` }} />
+                          <div className="rounded-t bg-accent-2" style={{ height: `${bars[1]}px` }} />
+                          <div className="rounded-t bg-success" style={{ height: `${bars[0]}px` }} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="rounded-[0.65rem] border border-border bg-surface-2 p-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Quality alerts</p>
+                    <div className="mt-4 space-y-2">
+                      <AlertRow label="Machine 4 down" value="14m" />
+                      <AlertRow label="Machine 2 down" value="12m" />
+                      <AlertRow label="Material shortage" value="7m" />
+                    </div>
                   </div>
                 </div>
-                <div className="rounded-[0.65rem] border border-border bg-surface-2 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Quality alerts</p>
-                  <div className="mt-4 space-y-2">
-                    <AlertRow label="Machine 4 down" value="14m" />
-                    <AlertRow label="Machine 2 down" value="12m" />
-                    <AlertRow label="Material shortage" value="7m" />
-                  </div>
-                </div>
-              </div>
-            </CardBody>
-          </Card>
+              </CardBody>
+            </Card>
+          </div>
         </section>
 
         <section className="grid gap-4 lg:grid-cols-3">
