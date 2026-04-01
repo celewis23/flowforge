@@ -231,7 +231,7 @@ function BellIcon() {
 
 function ChevronDoubleIcon({ expanded }: { expanded: boolean }) {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className={cn("transition-transform", expanded && "rotate-180")}>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className={cn("transition-transform", !expanded && "rotate-180")}>
       <path d="m14 7-5 5 5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
       <path d="m19 7-5 5 5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
