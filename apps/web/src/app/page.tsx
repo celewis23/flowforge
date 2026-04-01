@@ -14,17 +14,17 @@ export default async function Home() {
     <main className="relative overflow-hidden">
       <div className="relative mx-auto max-w-7xl px-4 pb-16 pt-4 sm:px-6 lg:px-8">
         <section className="grid items-start gap-6 pb-4 lg:grid-cols-[1.1fr_0.9fr] lg:gap-8 lg:pb-5">
-          <div className="space-y-6">
+          <div className="space-y-5">
             <BrandLogo hero className="w-fit" />
             <div className="inline-flex flex-wrap items-center gap-2 rounded-[0.65rem] border border-border bg-surface px-3 py-2 text-sm shadow-soft">
               <Badge variant="accent">FlowForge platform</Badge>
               <span>Boards, reporting, and team visibility in one product</span>
             </div>
-            <div className="space-y-5">
-              <h1 className="max-w-3xl text-[3rem] font-semibold tracking-tight text-foreground sm:text-[3.7rem] lg:text-[4.2rem]">
+            <div className="space-y-4">
+              <h1 className="max-w-3xl text-[3rem] font-semibold leading-[0.94] tracking-tight text-foreground sm:text-[3.7rem] lg:text-[4.2rem]">
                 Workforce clarity, forged into a real operating dashboard.
               </h1>
-              <p className="max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg">
+              <p className="max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
                 FlowForge gives leaders and teams one place to manage boards, assignments, reporting cycles, MSRs, and executive-ready summaries without patching workflows together.
               </p>
             </div>
