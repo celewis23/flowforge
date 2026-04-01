@@ -13,8 +13,7 @@ export default async function Home() {
   return (
     <main className="relative overflow-hidden">
       <div className="relative mx-auto max-w-7xl px-4 pb-16 pt-5 sm:px-6 lg:px-8">
-        <header className="flex items-center justify-between gap-6 py-2">
-          <BrandLogo className="shrink-0" />
+        <header className="flex items-center justify-end gap-6 py-2">
           <nav className="hidden items-center gap-3 md:flex">
             {marketingNav.map((item) => (
               <Link key={item.href} href={item.href} className="rounded-lg px-4 py-2 text-sm font-medium text-foreground transition hover:bg-muted">
@@ -24,8 +23,8 @@ export default async function Home() {
           </nav>
         </header>
 
-        <section className="grid gap-6 py-8 lg:grid-cols-[1.1fr_0.9fr] lg:py-10">
-          <div className="space-y-8">
+        <section className="grid items-start gap-6 py-4 lg:grid-cols-[1.1fr_0.9fr] lg:py-5">
+          <div className="space-y-7 pt-1">
             <div className="space-y-4">
               <BrandLogo hero className="w-fit" />
               <p className="max-w-2xl text-lg leading-8 text-muted-foreground">
