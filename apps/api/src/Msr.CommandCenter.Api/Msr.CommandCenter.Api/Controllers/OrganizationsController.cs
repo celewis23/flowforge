@@ -38,4 +38,24 @@ public class OrganizationsController : ControllerBase
         await _organizationService.InviteUserAsync(request, cancellationToken);
         return Accepted();
     }
+
+    [HttpGet("{organizationId:guid}/enterprise-settings")]
+    [Authorize(Roles = "OrgAdmin,PlatformAdmin")]
+    public Task<OrganizationEnterpriseSettingsDto> GetEnterpriseSettings(Guid organizationId, CancellationToken cancellationToken) =>
+        _organizationService.GetEnterpriseSettingsAsync(organizationId, cancellationToken);
+
+    [HttpPut("{organizationId:guid}/enterprise-settings/authentication")]
+    [Authorize(Roles = "OrgAdmin,PlatformAdmin")]
+    public Task<OrganizationAuthenticationSettingsDto> UpdateAuthenticationSettings(Guid organizationId, UpdateOrganizationAuthenticationSettingsRequest request, CancellationToken cancellationToken) =>
+        _organizationService.UpdateAuthenticationSettingsAsync(organizationId, request, cancellationToken);
+
+    [HttpPost("{organizationId:guid}/enterprise-settings/identity-providers")]
+    [Authorize(Roles = "OrgAdmin,PlatformAdmin")]
+    public Task<OrganizationIdentityProviderDto> UpsertIdentityProvider(Guid organizationId, UpsertOrganizationIdentityProviderRequest request, CancellationToken cancellationToken) =>
+        _organizationService.UpsertIdentityProviderAsync(organizationId, request, cancellationToken);
+
+    [HttpPost("{organizationId:guid}/enterprise-settings/integrations")]
+    [Authorize(Roles = "OrgAdmin,PlatformAdmin")]
+    public Task<OrganizationIntegrationConnectionDto> UpsertIntegration(Guid organizationId, UpsertOrganizationIntegrationConnectionRequest request, CancellationToken cancellationToken) =>
+        _organizationService.UpsertIntegrationConnectionAsync(organizationId, request, cancellationToken);
 }

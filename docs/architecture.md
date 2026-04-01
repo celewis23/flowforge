@@ -18,6 +18,7 @@ The domain layer owns the business model and rules:
 
 - organizations and teams
 - users, roles, and memberships
+- enterprise identity settings, identity providers, external identity links, and integration connections
 - boards, columns, cards, collaborators, comments, subtasks, and activity logs
 - projects and workstreams
 - reporting cycles, MSR drafts, submissions, and finals
@@ -46,6 +47,7 @@ The infrastructure layer provides implementations for:
 - EF Core persistence and migrations
 - ASP.NET Core Identity
 - JWT or secure cookie session handling
+- OIDC, SAML, and directory provisioning adapters
 - background jobs
 - email
 - file storage
@@ -79,6 +81,32 @@ Tenant isolation is enforced by:
 
 Tenant-aware tables should always include created and updated timestamps, soft delete or archive state where the workflow needs history, and audit trail references for sensitive changes.
 
+## Enterprise Identity And Integrations
+
+Enterprise support is modeled as a first-class tenant capability rather than a login add-on.
+
+- `OrganizationAuthenticationSettings` stores how a tenant authenticates:
+  local-only, mixed local plus SSO, or SSO-required
+- `OrganizationIdentityProvider` stores per-tenant identity provider configuration for Microsoft Entra ID, Google Workspace, and future SAML providers
+- `ExternalIdentityLink` maps internal users to upstream enterprise identities
+- `OrganizationIntegrationConnection` stores provider connections for Microsoft 365, Google Workspace, and future collaboration or document systems
+
+This design allows the platform to support:
+
+- Microsoft Entra ID and Google Workspace OIDC sign-in
+- future SAML support for regulated and legacy enterprise environments
+- SCIM and lifecycle provisioning without redesigning the tenant model
+- org-level SSO enforcement, domain verification, and group or role mapping
+- downstream integrations for Outlook, Teams, Google Drive, Gmail, Calendar, and similar services
+
+The intended rollout order is:
+
+1. tenant auth settings and provider configuration
+2. Microsoft and Google OIDC sign-in
+3. external identity linking and org SSO enforcement
+4. SCIM or directory provisioning
+5. productivity integrations and event sync
+
 ## Reporting Model
 
 The reporting engine uses deterministic rules first:
@@ -101,4 +129,3 @@ The production design includes:
 - background retry patterns for jobs
 - export generation outside the request thread where possible
 - explicit audit logging for permission-sensitive actions
-

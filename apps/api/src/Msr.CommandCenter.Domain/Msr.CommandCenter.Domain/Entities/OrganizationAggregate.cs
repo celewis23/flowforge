@@ -17,6 +17,10 @@ public class Organization : BaseEntity
     public ICollection<Project> Projects { get; set; } = new List<Project>();
     public ICollection<ReportingCycle> ReportingCycles { get; set; } = new List<ReportingCycle>();
     public ICollection<ReportTemplate> Templates { get; set; } = new List<ReportTemplate>();
+    public OrganizationAuthenticationSettings? AuthenticationSettings { get; set; }
+    public ICollection<OrganizationIdentityProvider> IdentityProviders { get; set; } = new List<OrganizationIdentityProvider>();
+    public ICollection<OrganizationIntegrationConnection> IntegrationConnections { get; set; } = new List<OrganizationIntegrationConnection>();
+    public ICollection<ExternalIdentityLink> ExternalIdentityLinks { get; set; } = new List<ExternalIdentityLink>();
 }
 
 public class Team : TenantEntity

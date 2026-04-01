@@ -60,3 +60,39 @@ public record SubmitPersonalMsrRequest(Guid PersonalMsrId, string EditedSummary)
 public record CompileTeamMsrRequest(Guid OrganizationId, Guid TeamId, Guid ReportingCycleId, Guid ManagerId);
 
 public record FinalizeTeamMsrRequest(Guid TeamMsrId, Guid FinalizedById, string ManagerNotes);
+
+public record UpdateOrganizationAuthenticationSettingsRequest(
+    OrganizationAuthenticationMode AuthenticationMode,
+    bool AllowLocalPasswordSignIn,
+    bool RequireMfaByDefault,
+    bool AllowJustInTimeProvisioning,
+    bool EnforceDomainVerification,
+    IReadOnlyCollection<string> AllowedDomains,
+    Guid? DefaultIdentityProviderId);
+
+public record UpsertOrganizationIdentityProviderRequest(
+    Guid? IdentityProviderId,
+    string Name,
+    IdentityProviderType ProviderType,
+    string ClientId,
+    string ClientSecretReference,
+    string Authority,
+    string MetadataUrl,
+    string TenantIdentifier,
+    IReadOnlyCollection<string> Scopes,
+    IReadOnlyCollection<string> DomainHints,
+    string RoleMappingsJson,
+    ProvisioningMode ProvisioningMode,
+    bool IsEnabled,
+    bool IsPrimary);
+
+public record UpsertOrganizationIntegrationConnectionRequest(
+    Guid? IntegrationConnectionId,
+    string Name,
+    IntegrationProviderType ProviderType,
+    string ClientId,
+    string ClientSecretReference,
+    string TenantIdentifier,
+    IReadOnlyCollection<string> Scopes,
+    string ConfigurationJson,
+    IntegrationConnectionStatus Status);

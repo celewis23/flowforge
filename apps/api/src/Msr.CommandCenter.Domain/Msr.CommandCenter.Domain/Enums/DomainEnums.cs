@@ -84,3 +84,39 @@ public enum ActivityEntryType
     NextStep = 6,
     AdHocWork = 7
 }
+
+public enum OrganizationAuthenticationMode
+{
+    LocalOnly = 1,
+    Mixed = 2,
+    SsoRequired = 3
+}
+
+public enum IdentityProviderType
+{
+    MicrosoftEntraId = 1,
+    GoogleWorkspace = 2,
+    Saml = 3
+}
+
+public enum IntegrationProviderType
+{
+    Microsoft365 = 1,
+    GoogleWorkspace = 2,
+    Slack = 3
+}
+
+public enum IntegrationConnectionStatus
+{
+    Draft = 1,
+    Active = 2,
+    Disabled = 3,
+    Error = 4
+}
+
+public enum ProvisioningMode
+{
+    None = 1,
+    JustInTime = 2,
+    Scim = 3
+}

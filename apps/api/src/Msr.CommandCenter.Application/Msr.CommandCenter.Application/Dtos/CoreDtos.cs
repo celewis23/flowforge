@@ -143,6 +143,52 @@ public record TemplateDto(
     string DefaultBoardColumnsJson,
     string BrandingJson);
 
+public record OrganizationAuthenticationSettingsDto(
+    Guid Id,
+    Guid OrganizationId,
+    string AuthenticationMode,
+    bool AllowLocalPasswordSignIn,
+    bool RequireMfaByDefault,
+    bool AllowJustInTimeProvisioning,
+    bool EnforceDomainVerification,
+    IReadOnlyCollection<string> AllowedDomains,
+    Guid? DefaultIdentityProviderId);
+
+public record OrganizationIdentityProviderDto(
+    Guid Id,
+    Guid OrganizationId,
+    string Name,
+    string ProviderType,
+    string ClientId,
+    string Authority,
+    string MetadataUrl,
+    string TenantIdentifier,
+    IReadOnlyCollection<string> Scopes,
+    IReadOnlyCollection<string> DomainHints,
+    string ProvisioningMode,
+    bool IsEnabled,
+    bool IsPrimary,
+    DateTime? LastValidatedAtUtc,
+    DateTime? LastSyncAtUtc);
+
+public record OrganizationIntegrationConnectionDto(
+    Guid Id,
+    Guid OrganizationId,
+    string Name,
+    string ProviderType,
+    string Status,
+    string ClientId,
+    string TenantIdentifier,
+    IReadOnlyCollection<string> Scopes,
+    DateTime? LastValidatedAtUtc,
+    DateTime? LastSyncAtUtc,
+    string LastError);
+
+public record OrganizationEnterpriseSettingsDto(
+    OrganizationAuthenticationSettingsDto Authentication,
+    IReadOnlyCollection<OrganizationIdentityProviderDto> IdentityProviders,
+    IReadOnlyCollection<OrganizationIntegrationConnectionDto> Integrations);
+
 public record AdminSummaryDto(
     OrganizationSummaryDto Organization,
     IReadOnlyCollection<TeamSummaryDto> Teams,

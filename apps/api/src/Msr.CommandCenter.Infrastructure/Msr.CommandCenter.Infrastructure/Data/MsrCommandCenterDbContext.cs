@@ -37,6 +37,10 @@ public class MsrCommandCenterDbContext : IdentityDbContext<ApplicationUser, Iden
     public DbSet<OrganizationInvitation> OrganizationInvitations => Set<OrganizationInvitation>();
     public DbSet<FeatureFlag> FeatureFlags => Set<FeatureFlag>();
     public DbSet<RefreshSession> RefreshSessions => Set<RefreshSession>();
+    public DbSet<OrganizationAuthenticationSettings> OrganizationAuthenticationSettings => Set<OrganizationAuthenticationSettings>();
+    public DbSet<OrganizationIdentityProvider> OrganizationIdentityProviders => Set<OrganizationIdentityProvider>();
+    public DbSet<OrganizationIntegrationConnection> OrganizationIntegrationConnections => Set<OrganizationIntegrationConnection>();
+    public DbSet<ExternalIdentityLink> ExternalIdentityLinks => Set<ExternalIdentityLink>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -57,6 +61,7 @@ public class MsrCommandCenterDbContext : IdentityDbContext<ApplicationUser, Iden
 
         builder.Entity<Organization>().HasIndex(x => x.Slug).IsUnique();
         builder.Entity<ApplicationUser>().HasIndex(x => new { x.OrganizationId, x.Email });
+        builder.Entity<ApplicationUser>().Property(x => x.ExternalEmployeeId).HasMaxLength(200);
         builder.Entity<TeamMembership>().HasIndex(x => new { x.TeamId, x.UserId }).IsUnique();
         builder.Entity<ProjectMembership>().HasIndex(x => new { x.ProjectId, x.UserId }).IsUnique();
         builder.Entity<Board>().HasIndex(x => new { x.OrganizationId, x.OwnerId, x.Name });
@@ -70,6 +75,41 @@ public class MsrCommandCenterDbContext : IdentityDbContext<ApplicationUser, Iden
         builder.Entity<ReportingCycle>().HasIndex(x => new { x.OrganizationId, x.TeamId, x.StartDateUtc, x.EndDateUtc });
         builder.Entity<OrganizationInvitation>().HasIndex(x => x.Token).IsUnique();
         builder.Entity<RefreshSession>().HasIndex(x => x.Token).IsUnique();
+        builder.Entity<OrganizationAuthenticationSettings>().HasIndex(x => x.OrganizationId).IsUnique();
+        builder.Entity<OrganizationIdentityProvider>().HasIndex(x => new { x.OrganizationId, x.ProviderType, x.Name }).IsUnique();
+        builder.Entity<OrganizationIntegrationConnection>().HasIndex(x => new { x.OrganizationId, x.ProviderType, x.Name }).IsUnique();
+        builder.Entity<ExternalIdentityLink>().HasIndex(x => new { x.OrganizationId, x.ProviderType, x.ExternalSubject }).IsUnique();
+        builder.Entity<ExternalIdentityLink>().HasIndex(x => new { x.OrganizationId, x.UserId, x.ProviderType }).IsUnique();
+
+        builder.Entity<Organization>()
+            .HasOne(x => x.AuthenticationSettings)
+            .WithOne(x => x.Organization)
+            .HasForeignKey<OrganizationAuthenticationSettings>(x => x.OrganizationId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<Organization>()
+            .HasMany(x => x.IdentityProviders)
+            .WithOne(x => x.Organization)
+            .HasForeignKey(x => x.OrganizationId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<Organization>()
+            .HasMany(x => x.IntegrationConnections)
+            .WithOne(x => x.Organization)
+            .HasForeignKey(x => x.OrganizationId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<Organization>()
+            .HasMany(x => x.ExternalIdentityLinks)
+            .WithOne(x => x.Organization)
+            .HasForeignKey(x => x.OrganizationId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<ExternalIdentityLink>()
+            .HasOne(x => x.IdentityProvider)
+            .WithMany()
+            .HasForeignKey(x => x.IdentityProviderId)
+            .OnDelete(DeleteBehavior.SetNull);
 
         builder.Entity<Board>()
             .HasMany(x => x.Columns)
