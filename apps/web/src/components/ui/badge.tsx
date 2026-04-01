@@ -3,11 +3,11 @@ import { cn } from "@/lib/utils";
 type Variant = "neutral" | "success" | "warning" | "danger" | "accent";
 
 const variants: Record<Variant, string> = {
-  neutral: "bg-surface text-muted-foreground ring-1 ring-border",
-  success: "bg-success/12 text-success ring-1 ring-success/20",
-  warning: "bg-warning/12 text-warning ring-1 ring-warning/20",
-  danger: "bg-danger/12 text-danger ring-1 ring-danger/20",
-  accent: "bg-accent/12 text-accent ring-1 ring-accent/20",
+  neutral: "bg-white/7 text-foreground ring-1 ring-white/10",
+  success: "bg-success/14 text-success ring-1 ring-success/22",
+  warning: "bg-warning/14 text-warning ring-1 ring-warning/22",
+  danger: "bg-danger/14 text-danger ring-1 ring-danger/22",
+  accent: "bg-accent/14 text-accent ring-1 ring-accent/22",
 };
 
 export function Badge({

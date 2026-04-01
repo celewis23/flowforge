@@ -6,20 +6,20 @@ type Variant = "primary" | "secondary" | "ghost" | "danger" | "subtle";
 type Size = "sm" | "md" | "lg";
 
 const base =
-  "inline-flex items-center justify-center rounded-full font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50";
+  "inline-flex items-center justify-center rounded-full font-medium transition duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50";
 
 const variants: Record<Variant, string> = {
-  primary: "bg-foreground text-background shadow-sm hover:opacity-90",
-  secondary: "bg-surface text-foreground ring-1 ring-border hover:bg-surface-2",
-  ghost: "bg-transparent text-foreground hover:bg-surface",
-  danger: "bg-danger text-white hover:opacity-90",
-  subtle: "bg-accent/10 text-accent hover:bg-accent/15",
+  primary: "bg-[linear-gradient(135deg,var(--color-accent),var(--color-accent-2))] text-slate-950 shadow-[0_16px_40px_rgba(45,212,191,0.25)] hover:-translate-y-0.5 hover:shadow-[0_22px_48px_rgba(96,165,250,0.28)]",
+  secondary: "bg-white/6 text-foreground ring-1 ring-white/10 backdrop-blur-md hover:bg-white/10",
+  ghost: "bg-transparent text-foreground hover:bg-white/7",
+  danger: "bg-danger text-slate-950 shadow-[0_16px_34px_rgba(251,113,133,0.25)] hover:-translate-y-0.5",
+  subtle: "bg-accent/12 text-accent hover:bg-accent/18",
 };
 
 const sizes: Record<Size, string> = {
-  sm: "h-9 px-3 text-sm",
-  md: "h-11 px-4 text-sm",
-  lg: "h-12 px-5 text-base",
+  sm: "h-9 px-3.5 text-sm",
+  md: "h-11 px-4.5 text-sm",
+  lg: "h-12 px-6 text-base",
 };
 
 export function Button({

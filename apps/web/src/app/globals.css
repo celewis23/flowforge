@@ -1,18 +1,19 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8f5ef;
-  --foreground: #10202a;
-  --muted: #e7dfd4;
-  --muted-foreground: #5b6470;
-  --surface: rgba(255, 255, 255, 0.88);
-  --surface-2: #ffffff;
-  --border: rgba(16, 32, 42, 0.1);
-  --accent: #0f766e;
-  --success: #15803d;
-  --warning: #b45309;
-  --danger: #b91c1c;
-  --shadow-soft: 0 18px 45px rgba(16, 32, 42, 0.08);
+  --background: #08111f;
+  --foreground: #eff7ff;
+  --muted: #0f1a2b;
+  --muted-foreground: #92a6bf;
+  --surface: rgba(10, 18, 32, 0.72);
+  --surface-2: rgba(16, 28, 49, 0.92);
+  --border: rgba(138, 168, 210, 0.18);
+  --accent: #2dd4bf;
+  --accent-2: #60a5fa;
+  --success: #34d399;
+  --warning: #f59e0b;
+  --danger: #fb7185;
+  --shadow-soft: 0 30px 90px rgba(2, 8, 23, 0.42);
 }
 
 @theme inline {
@@ -24,6 +25,7 @@
   --color-surface-2: var(--surface-2);
   --color-border: var(--border);
   --color-accent: var(--accent);
+  --color-accent-2: var(--accent-2);
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-danger: var(--danger);
@@ -38,19 +40,23 @@
 
 html {
   background:
-    radial-gradient(circle at top left, rgba(15, 118, 110, 0.1), transparent 28%),
-    radial-gradient(circle at top right, rgba(180, 83, 9, 0.08), transparent 26%),
-    linear-gradient(180deg, #fcfaf5 0%, #f8f5ef 100%);
+    radial-gradient(circle at 10% 10%, rgba(45, 212, 191, 0.2), transparent 24%),
+    radial-gradient(circle at 88% 18%, rgba(96, 165, 250, 0.22), transparent 26%),
+    radial-gradient(circle at 50% 110%, rgba(251, 113, 133, 0.14), transparent 30%),
+    linear-gradient(180deg, #08111f 0%, #0b1426 38%, #0d1830 100%);
 }
 
 body {
   min-height: 100vh;
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.02), transparent 40%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 18%);
 }
 
 ::selection {
-  background: rgba(15, 118, 110, 0.18);
+  background: rgba(45, 212, 191, 0.28);
 }
 
 a {
@@ -58,6 +64,18 @@ a {
 }
 
 dialog::backdrop {
-  background: rgba(16, 32, 42, 0.45);
+  background: rgba(2, 8, 23, 0.65);
 }
 
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.45), transparent 85%);
+  opacity: 0.35;
+}

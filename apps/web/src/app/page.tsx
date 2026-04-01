@@ -11,7 +11,7 @@ export default async function Home() {
 
   return (
     <main className="relative overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(15,118,110,0.18),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(180,83,9,0.12),transparent_24%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(45,212,191,0.18),transparent_24%),radial-gradient(circle_at_top_right,rgba(96,165,250,0.22),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(251,113,133,0.12),transparent_24%)]" />
       <div className="relative mx-auto max-w-7xl px-4 pb-16 pt-5 sm:px-6 lg:px-8">
         <header className="flex items-center justify-between gap-4">
           <Link href="/" className="text-sm font-semibold uppercase tracking-[0.22em] text-accent">
@@ -19,7 +19,7 @@ export default async function Home() {
           </Link>
           <nav className="hidden items-center gap-3 md:flex">
             {marketingNav.map((item) => (
-              <Link key={item.href} href={item.href} className="rounded-full px-4 py-2 text-sm font-medium text-foreground transition hover:bg-surface">
+              <Link key={item.href} href={item.href} className="rounded-full px-4 py-2 text-sm font-medium text-foreground transition hover:bg-white/7">
                 {item.label}
               </Link>
             ))}
@@ -28,17 +28,17 @@ export default async function Home() {
 
         <section className="grid gap-10 py-16 lg:grid-cols-[1.05fr_0.95fr] lg:py-20">
           <div className="space-y-8">
-            <div className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-2 text-sm shadow-soft">
-              <Badge variant="accent">Multi-tenant SaaS</Badge>
-              <span>Boards, MSRs, dashboards, and exports in one workflow</span>
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/6 px-3 py-2 text-sm shadow-soft backdrop-blur-md">
+              <Badge variant="accent">Progressive operations SaaS</Badge>
+              <span>Boards, reporting, and executive visibility in one living system</span>
             </div>
             <div className="space-y-5">
               <h1 className="max-w-3xl text-5xl font-semibold tracking-tight text-foreground sm:text-6xl">
-                Run manager assignments, team boards, and monthly MSRs without spreadsheet chaos.
+                Turn boards, reporting cycles, and team signals into one modern command layer.
               </h1>
               <p className="max-w-2xl text-lg leading-8 text-muted-foreground">
-                MSR Command Center gives every team member a personal board, lets managers compile team-wide reporting, and keeps
-                dashboards, reminders, audits, and exports aligned to one tenant-aware system.
+                MSR Command Center gives every team member a personal flow of work, lets managers orchestrate assignments across the team,
+                and transforms that workstream into dashboards, MSRs, exports, and executive updates without context loss.
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-3">
@@ -56,12 +56,12 @@ export default async function Home() {
             </div>
           </div>
 
-          <Card className="overflow-hidden">
-            <CardHeader>
+          <Card className="overflow-hidden border-white/12 bg-[linear-gradient(180deg,rgba(16,28,49,0.85),rgba(8,17,31,0.82))]">
+            <CardHeader className="border-white/10">
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">Live product snapshot</p>
-                  <h2 className="mt-2 text-xl font-semibold">Delivery team overview</h2>
+                  <h2 className="mt-2 text-xl font-semibold">Operations signal board</h2>
                 </div>
                 <Badge variant="warning">2 blockers</Badge>
               </div>
@@ -73,12 +73,12 @@ export default async function Home() {
                 <Snapshot label="Personal MSRs" value="9/10" detail="submitted or drafted" />
                 <Snapshot label="Reports ready" value="1" detail="team MSR finalized" />
               </div>
-              <div className="rounded-3xl bg-foreground p-5 text-background">
-                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-background/65">Cycle timeline</p>
+              <div className="rounded-[1.7rem] border border-white/10 bg-[linear-gradient(145deg,rgba(45,212,191,0.14),rgba(96,165,250,0.08))] p-5">
+                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-accent">Cycle timeline</p>
                 <div className="mt-4 space-y-3 text-sm">
-                  <TimelineRow label="Accomplishments" value="cards moved + activity notes captured" />
-                  <TimelineRow label="Current work" value="in-progress and collaborative cards summarized" />
-                  <TimelineRow label="Manager review" value="personal MSRs compiled into team report" />
+                  <TimelineRow label="Capture" value="cards, notes, blockers, and manager asks move through one system of record" />
+                  <TimelineRow label="Compile" value="personal MSRs roll into team reporting without duplicate manual formatting" />
+                  <TimelineRow label="Broadcast" value="exec-ready summaries, exports, and dashboards stay aligned with real work" />
                 </div>
               </div>
             </CardBody>
@@ -89,7 +89,7 @@ export default async function Home() {
           {highlights.pillars.map((pillar, index) => (
             <Card key={pillar} className="h-full">
               <CardBody className="space-y-3">
-                <div className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-accent/10 text-sm font-semibold text-accent">
+                <div className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-white/7 text-sm font-semibold text-accent">
                   0{index + 1}
                 </div>
                 <h3 className="text-lg font-semibold">Product pillar</h3>
@@ -133,9 +133,9 @@ export default async function Home() {
 
 function Metric({ label, value, detail }: { label: string; value: string; detail: string }) {
   return (
-    <Card>
+      <Card>
       <CardBody className="space-y-2">
-        <p className="text-sm font-medium text-muted-foreground">{label}</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">{label}</p>
         <p className="text-3xl font-semibold tracking-tight">{value}</p>
         <p className="text-sm text-muted-foreground">{detail}</p>
       </CardBody>
@@ -145,7 +145,7 @@ function Metric({ label, value, detail }: { label: string; value: string; detail
 
 function Snapshot({ label, value, detail }: { label: string; value: string; detail: string }) {
   return (
-    <div className="rounded-3xl border border-border bg-surface p-4">
+    <div className="rounded-[1.6rem] border border-white/10 bg-white/6 p-4 backdrop-blur-md">
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">{label}</p>
       <p className="mt-2 text-2xl font-semibold">{value}</p>
       <p className="mt-1 text-sm text-muted-foreground">{detail}</p>
