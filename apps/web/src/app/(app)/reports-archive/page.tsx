@@ -2,11 +2,12 @@ import { Button, ButtonLink } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { PageShell } from "@/components/layout/page-shell";
-import { getReportingData, getUserById } from "@/lib/mock-api";
+import { getReportingData, getMsrData } from "@/lib/api";
 import { formatDateTime } from "@/lib/utils";
 
 export default async function ReportsArchivePage() {
   const data = await getReportingData();
+  const msrData = await getMsrData();
 
   return (
     <PageShell eyebrow="Reports Archive" title="Approved reports and exports" description="Access submitted personal MSRs, finalized team reports, and export-ready artifacts.">
@@ -34,7 +35,7 @@ export default async function ReportsArchivePage() {
           <Card key={report.id}>
             <CardHeader>
               <div className="flex items-center justify-between gap-3">
-                <h2 className="text-lg font-semibold">{getUserById(report.userId)?.name ?? report.userId}</h2>
+                <h2 className="text-lg font-semibold">{msrData.users.find((user) => user.id === report.userId)?.name ?? report.userId}</h2>
                 <Badge variant={report.status === "submitted" ? "success" : "warning"}>{report.status}</Badge>
               </div>
             </CardHeader>

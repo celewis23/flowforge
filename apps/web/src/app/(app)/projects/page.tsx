@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { PageShell } from "@/components/layout/page-shell";
-import { getProjectsData } from "@/lib/mock-api";
+import { getProjectsData } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
 
 export default async function ProjectsPage() {
@@ -37,4 +37,3 @@ export default async function ProjectsPage() {
     </PageShell>
   );
 }
-

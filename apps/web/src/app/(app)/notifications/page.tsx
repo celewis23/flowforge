@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardBody } from "@/components/ui/card";
 import { PageShell } from "@/components/layout/page-shell";
-import { getNotificationsData } from "@/lib/mock-api";
+import { getNotificationsData } from "@/lib/api";
 import { formatDateTime } from "@/lib/utils";
 
 export default async function NotificationsPage() {

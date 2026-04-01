@@ -2,7 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardBody } from "@/components/ui/card";
 import { PageShell } from "@/components/layout/page-shell";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { getTasksData } from "@/lib/mock-api";
+import { getTasksData } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
 
 export default async function MyTasksPage() {

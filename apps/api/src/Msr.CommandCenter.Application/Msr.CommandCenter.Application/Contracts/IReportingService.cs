@@ -5,6 +5,7 @@ namespace Msr.CommandCenter.Application.Contracts;
 public interface IReportingService
 {
     Task<IReadOnlyCollection<ReportingCycleDto>> GetReportingCyclesAsync(Guid organizationId, Guid teamId, CancellationToken cancellationToken);
+    Task<IReadOnlyCollection<ActivityEntryDto>> GetActivityEntriesAsync(Guid organizationId, Guid userId, CancellationToken cancellationToken);
     Task<ActivityEntryDto> CreateActivityEntryAsync(CreateActivityEntryRequest request, CancellationToken cancellationToken);
     Task<PersonalMsrDto> GeneratePersonalMsrAsync(GeneratePersonalMsrRequest request, CancellationToken cancellationToken);
     Task<PersonalMsrDto> SubmitPersonalMsrAsync(SubmitPersonalMsrRequest request, Guid actorId, CancellationToken cancellationToken);

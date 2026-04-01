@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { PageShell } from "@/components/layout/page-shell";
-import { getMsrData, getUserById } from "@/lib/mock-api";
+import { getMsrData } from "@/lib/api";
 import { formatDateTime } from "@/lib/utils";
 
 export default async function MyMsrsPage() {
@@ -15,7 +15,7 @@ export default async function MyMsrsPage() {
           <Card key={msr.id}>
             <CardHeader>
               <div className="flex items-center justify-between gap-3">
-                <h2 className="text-lg font-semibold">{getUserById(msr.userId)?.name ?? msr.userId}</h2>
+                <h2 className="text-lg font-semibold">{data.users.find((user) => user.id === msr.userId)?.name ?? msr.userId}</h2>
                 <Badge variant={msr.status === "submitted" ? "success" : "warning"}>{msr.status}</Badge>
               </div>
             </CardHeader>

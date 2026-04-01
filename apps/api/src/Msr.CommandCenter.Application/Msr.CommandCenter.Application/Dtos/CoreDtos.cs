@@ -116,3 +116,37 @@ public record DashboardDto(
     decimal SubmissionCompletionRate);
 
 public record AuditLogDto(Guid Id, string Action, string EntityName, string EntityId, string Details, DateTime CreatedAtUtc, string CorrelationId);
+
+public record AdminUserDto(
+    Guid Id,
+    string FullName,
+    string Email,
+    string Role,
+    string Title,
+    Guid? TeamId,
+    bool IsActive);
+
+public record InvitationDto(
+    Guid Id,
+    string Email,
+    string Role,
+    Guid TeamId,
+    DateTime ExpiresAtUtc,
+    DateTime? AcceptedAtUtc);
+
+public record TemplateDto(
+    Guid Id,
+    string Name,
+    string TemplateType,
+    string RequiredSectionsJson,
+    string PromptQuestionsJson,
+    string DefaultBoardColumnsJson,
+    string BrandingJson);
+
+public record AdminSummaryDto(
+    OrganizationSummaryDto Organization,
+    IReadOnlyCollection<TeamSummaryDto> Teams,
+    IReadOnlyCollection<AdminUserDto> Users,
+    IReadOnlyCollection<InvitationDto> Invitations,
+    IReadOnlyCollection<TemplateDto> Templates,
+    IReadOnlyCollection<AuditLogDto> AuditLogs);

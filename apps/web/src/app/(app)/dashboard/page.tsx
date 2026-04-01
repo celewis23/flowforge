@@ -2,7 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { PageShell } from "@/components/layout/page-shell";
 import { StatCard } from "@/components/ui/stat-card";
-import { getDashboardData } from "@/lib/mock-api";
+import { getDashboardData } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
 
 export default async function DashboardPage() {
@@ -62,4 +62,3 @@ export default async function DashboardPage() {
     </PageShell>
   );
 }
-

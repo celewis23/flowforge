@@ -3,7 +3,7 @@ import { ButtonLink } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { marketingNav } from "@/lib/navigation";
-import { getLandingHighlights, getMarketingStats } from "@/lib/mock-api";
+import { getLandingHighlights, getMarketingStats } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
 
 export default async function Home() {

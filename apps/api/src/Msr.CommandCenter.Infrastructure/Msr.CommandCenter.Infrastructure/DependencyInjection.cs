@@ -37,6 +37,7 @@ public static class DependencyInjection
         services.AddScoped<IReportingService, ReportingService>();
         services.AddScoped<IDashboardService, DashboardService>();
         services.AddScoped<IExportService, ExportService>();
+        services.AddScoped<IAdminReadService, AdminReadService>();
         services.AddScoped<DatabaseInitializer>();
 
         return services;

@@ -1,5 +1,5 @@
 import { AppShell } from "@/components/layout/app-shell";
-import { getAppSummary } from "@/lib/mock-api";
+import { getAppSummary } from "@/lib/api";
 
 export default async function AppLayout({
   children,
@@ -14,4 +14,3 @@ export default async function AppLayout({
     </AppShell>
   );
 }
-

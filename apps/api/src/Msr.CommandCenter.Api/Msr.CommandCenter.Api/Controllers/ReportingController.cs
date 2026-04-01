@@ -22,6 +22,10 @@ public class ReportingController : ControllerBase
     public Task<IReadOnlyCollection<ReportingCycleDto>> GetCycles(Guid teamId, CancellationToken cancellationToken) =>
         _reportingService.GetReportingCyclesAsync(User.GetOrganizationId(), teamId, cancellationToken);
 
+    [HttpGet("activity")]
+    public Task<IReadOnlyCollection<ActivityEntryDto>> GetActivity(CancellationToken cancellationToken) =>
+        _reportingService.GetActivityEntriesAsync(User.GetOrganizationId(), User.GetUserId(), cancellationToken);
+
     [HttpPost("activity")]
     public Task<ActivityEntryDto> AddActivity(CreateActivityEntryRequest request, CancellationToken cancellationToken) =>
         _reportingService.CreateActivityEntryAsync(request with { OrganizationId = User.GetOrganizationId(), UserId = User.GetUserId() }, cancellationToken);

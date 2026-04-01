@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardBody } from "@/components/ui/card";
 import { PageShell } from "@/components/layout/page-shell";
-import { getActivityData } from "@/lib/mock-api";
+import { getActivityData } from "@/lib/api";
 import { formatDateTime } from "@/lib/utils";
 
 export default async function MyActivityLogPage() {
@@ -29,4 +29,3 @@ export default async function MyActivityLogPage() {
     </PageShell>
   );
 }
-

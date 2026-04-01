@@ -1,6 +1,6 @@
 import { PageShell } from "@/components/layout/page-shell";
 import { MsrEditor } from "@/components/reports/msr-editor";
-import { getPersonalMsrWorkspace } from "@/lib/mock-api";
+import { getPersonalMsrWorkspace } from "@/lib/api";
 
 export default async function PersonalMsrEditorPage() {
   const data = await getPersonalMsrWorkspace();
@@ -11,4 +11,3 @@ export default async function PersonalMsrEditorPage() {
     </PageShell>
   );
 }
-

@@ -26,6 +26,15 @@ public class ReportingService : IReportingService
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyCollection<ActivityEntryDto>> GetActivityEntriesAsync(Guid organizationId, Guid userId, CancellationToken cancellationToken)
+    {
+        return await _dbContext.ActivityEntries
+            .Where(x => x.OrganizationId == organizationId && x.UserId == userId)
+            .OrderByDescending(x => x.CreatedAtUtc)
+            .Select(x => new ActivityEntryDto(x.Id, x.EntryType, x.Title, x.Content, x.IncludeInMsr, x.CreatedAtUtc))
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<ActivityEntryDto> CreateActivityEntryAsync(CreateActivityEntryRequest request, CancellationToken cancellationToken)
     {
         var entry = new ActivityEntry

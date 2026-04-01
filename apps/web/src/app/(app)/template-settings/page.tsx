@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { PageShell } from "@/components/layout/page-shell";
-import { getAdminData } from "@/lib/mock-api";
+import { getAdminData } from "@/lib/api";
 
 export default async function TemplateSettingsPage() {
   const data = await getAdminData();
@@ -20,7 +20,7 @@ export default async function TemplateSettingsPage() {
             <CardBody className="space-y-3">
               <p className="text-sm text-muted-foreground">{template.branding}</p>
               <div className="space-y-2 text-sm text-muted-foreground">
-                {template.requiredSections.map((section) => (
+                {template.requiredSections.map((section: string) => (
                   <div key={section} className="rounded-2xl border border-border bg-surface px-4 py-3">
                     {section}
                   </div>
@@ -33,4 +33,3 @@ export default async function TemplateSettingsPage() {
     </PageShell>
   );
 }
-

@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { PageShell } from "@/components/layout/page-shell";
-import { getAdminData } from "@/lib/mock-api";
+import { getAdminData } from "@/lib/api";
 
 export default async function PlatformAdminPage() {
   const data = await getAdminData();
@@ -51,4 +51,3 @@ export default async function PlatformAdminPage() {
     </PageShell>
   );
 }
-

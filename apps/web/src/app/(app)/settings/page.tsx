@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { PageShell } from "@/components/layout/page-shell";
-import { getSettingsData } from "@/lib/mock-api";
+import { getSettingsData } from "@/lib/api";
 
 export default async function SettingsPage() {
   const data = await getSettingsData();
@@ -33,4 +33,3 @@ export default async function SettingsPage() {
     </PageShell>
   );
 }
-

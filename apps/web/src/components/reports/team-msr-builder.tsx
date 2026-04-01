@@ -7,8 +7,7 @@ import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Modal } from "@/components/ui/modal";
 import { Textarea } from "@/components/ui/input";
 import { ToastPill, useToast } from "@/components/ui/toast";
-import { getUserById } from "@/lib/mock-api";
-import type { PersonalMsr, ReportingCycle, Team, TeamMsr } from "@/lib/types";
+import type { PersonalMsr, ReportingCycle, Team, TeamMsr, User } from "@/lib/types";
 import { formatDateTime } from "@/lib/utils";
 
 export function TeamMsrBuilder({
@@ -16,15 +15,18 @@ export function TeamMsrBuilder({
   cycle,
   draft,
   personal,
+  users,
 }: {
   team: Team;
   cycle: ReportingCycle;
   draft: TeamMsr;
   personal: PersonalMsr[];
+  users: User[];
 }) {
   const [summary, setSummary] = useState(draft.executiveSummary);
   const [confirm, setConfirm] = useState(false);
   const { push } = useToast();
+  const getUserName = (userId: string) => users.find((user) => user.id === userId)?.name ?? userId;
 
   return (
     <div className="space-y-5">
@@ -87,7 +89,7 @@ export function TeamMsrBuilder({
             <CardBody className="space-y-3">
               {draft.appendix.map((entry) => (
                 <div key={entry.userId} className="rounded-2xl border border-border bg-surface p-4">
-                  <p className="text-sm font-semibold">{getUserById(entry.userId)?.name ?? entry.userId}</p>
+                  <p className="text-sm font-semibold">{getUserName(entry.userId)}</p>
                   <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
                     {entry.highlights.map((highlight) => (
                       <li key={highlight}>• {highlight}</li>
@@ -105,7 +107,7 @@ export function TeamMsrBuilder({
               {personal.map((msr) => (
                 <div key={msr.id} className="rounded-2xl border border-border bg-background p-4">
                   <div className="flex items-center justify-between gap-3">
-                <p className="text-sm font-semibold">{getUserById(msr.userId)?.name ?? msr.userId}</p>
+                    <p className="text-sm font-semibold">{getUserName(msr.userId)}</p>
                     <Badge variant={msr.status === "submitted" ? "success" : "warning"}>{msr.status}</Badge>
                   </div>
                   <p className="mt-2 text-xs text-muted-foreground">Updated {formatDateTime(msr.updatedAt)}</p>

@@ -2,7 +2,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardBody } from "@/components/ui/card";
 import { PageShell } from "@/components/layout/page-shell";
-import { getMembersData } from "@/lib/mock-api";
+import { getMembersData } from "@/lib/api";
 
 export default async function TeamMembersPage() {
   const data = await getMembersData();
@@ -31,4 +31,3 @@ export default async function TeamMembersPage() {
     </PageShell>
   );
 }
-

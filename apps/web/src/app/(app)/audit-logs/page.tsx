@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { PageShell } from "@/components/layout/page-shell";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { getAdminData, getUserById } from "@/lib/mock-api";
+import { getAdminData } from "@/lib/api";
 import { formatDateTime } from "@/lib/utils";
 
 export default async function AuditLogsPage() {
@@ -24,7 +24,7 @@ export default async function AuditLogsPage() {
               <TableRow key={entry.id}>
                 <TableCell className="font-medium">{entry.action}</TableCell>
                 <TableCell>{entry.target}</TableCell>
-                <TableCell><Badge variant="neutral">{getUserById(entry.actorId)?.name ?? entry.actorId}</Badge></TableCell>
+                <TableCell><Badge variant="neutral">{entry.actorId}</Badge></TableCell>
                 <TableCell>{formatDateTime(entry.createdAt)}</TableCell>
               </TableRow>
             ))}

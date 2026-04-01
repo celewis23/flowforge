@@ -68,10 +68,13 @@ export interface BoardColumn {
   title: string;
   status: CardStatus;
   order: number;
+  color?: string;
 }
 
 export interface Card {
   id: string;
+  boardId?: string;
+  columnId?: string;
   title: string;
   description: string;
   status: CardStatus;
@@ -128,6 +131,7 @@ export interface ActivityEntry {
 
 export interface ReportingCycle {
   id: string;
+  name?: string;
   teamId: string;
   cadence: CycleCadence;
   startDate: string;
@@ -147,7 +151,8 @@ export interface PersonalMsr {
   id: string;
   userId: string;
   cycleId: string;
-  status: "draft" | "submitted" | "approved";
+  teamId?: string;
+  status: "draft" | "submitted" | "approved" | "finalized" | "locked";
   generated: MsrSection[];
   edited: MsrSection[];
   final: MsrSection[];
@@ -159,7 +164,7 @@ export interface TeamMsr {
   id: string;
   teamId: string;
   cycleId: string;
-  status: "draft" | "finalized";
+  status: "draft" | "finalized" | "submitted" | "locked";
   executiveSummary: string;
   sections: MsrSection[];
   appendix: Array<{ userId: string; highlights: string[] }>;

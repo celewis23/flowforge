@@ -1,6 +1,6 @@
 import { PageShell } from "@/components/layout/page-shell";
 import { BoardWorkspace } from "@/components/board/board-workspace";
-import { getTeamBoardData } from "@/lib/mock-api";
+import { getTeamBoardData } from "@/lib/api";
 
 export default async function TeamBoardPage() {
   const data = await getTeamBoardData();

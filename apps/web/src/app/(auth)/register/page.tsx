@@ -1,34 +1,29 @@
 import Link from "next/link";
 import { AuthShell } from "@/components/layout/auth-shell";
+import { registerAction } from "@/lib/auth-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
 
-export default function RegisterPage() {
+export default async function RegisterPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ error?: string }>;
+}) {
+  const params = await searchParams;
+
   return (
     <AuthShell title="Create your workspace" description="Register a new organization and start building boards, teams, and reporting cycles.">
-      <form className="space-y-4">
+      <form action={registerAction} className="space-y-4">
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Full name" id="name" defaultValue="Taylor Morgan" />
+          <Field label="Full name" id="fullName" defaultValue="Taylor Morgan" />
           <Field label="Email" id="email" type="email" defaultValue="taylor@company.com" />
         </div>
-        <Field label="Organization name" id="org" defaultValue="Acme Operations" />
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="role">
-              Role
-            </label>
-            <Select id="role" defaultValue="OrgAdmin">
-              <option value="OrgAdmin">Org Admin</option>
-              <option value="Manager">Manager</option>
-              <option value="TeamMember">Team Member</option>
-            </Select>
-          </div>
-          <Field label="Password" id="password" type="password" defaultValue="password123" />
-        </div>
+        <Field label="Organization name" id="organizationName" defaultValue="Acme Operations" />
+        <Field label="Password" id="password" type="password" defaultValue="Passw0rd!" />
         <Button type="submit" className="w-full">
           Create account
         </Button>
+        {params?.error ? <p className="text-sm font-medium text-red-600">Registration failed. Try a different email or organization name.</p> : null}
       </form>
       <p className="text-sm text-muted-foreground">
         Already have an account?{" "}
@@ -56,8 +51,7 @@ function Field({
       <label className="text-sm font-medium" htmlFor={id}>
         {label}
       </label>
-      <Input id={id} type={type} defaultValue={defaultValue} />
+      <Input id={id} name={id} type={type} defaultValue={defaultValue} />
     </div>
   );
 }
-
