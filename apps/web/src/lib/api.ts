@@ -439,6 +439,11 @@ export async function getAppSummary() {
 
 export async function getDashboardData() {
   const sessionUser = await requireSessionUser();
+  const canViewTeamReports =
+    sessionUser.role === "Manager" ||
+    sessionUser.role === "OrgAdmin" ||
+    sessionUser.role === "PlatformAdmin" ||
+    sessionUser.role === "ExecutiveViewer";
   const dashboardPath =
     sessionUser.role === "Manager" && sessionUser.teamId
       ? `/api/dashboards/manager/${sessionUser.teamId}`
@@ -450,11 +455,11 @@ export async function getDashboardData() {
     apiFetch<DashboardDto>(dashboardPath),
     getAdminSummarySafe(),
     sessionUser.teamId ? apiFetch<ReportingCycleDto[]>(`/api/reporting/cycles/${sessionUser.teamId}`) : Promise.resolve([] as ReportingCycleDto[]),
-    sessionUser.teamId ? apiFetch<TeamMsrDto[]>(`/api/reporting/team-msrs/${sessionUser.teamId}`) : Promise.resolve([] as TeamMsrDto[]),
+    sessionUser.teamId && canViewTeamReports ? apiFetch<TeamMsrDto[]>(`/api/reporting/team-msrs/${sessionUser.teamId}`) : Promise.resolve([] as TeamMsrDto[]),
   ]);
 
   const users = admin.users.map(mapUser);
-  const personalMsrs = sessionUser.teamId ? await apiFetch<PersonalMsrDto[]>(`/api/reporting/personal-msrs/${sessionUser.teamId}`) : [];
+  const personalMsrs = sessionUser.teamId && canViewTeamReports ? await apiFetch<PersonalMsrDto[]>(`/api/reporting/personal-msrs/${sessionUser.teamId}`) : [];
   const latestReport = teamMsrs[0] ? mapTeamMsr(teamMsrs[0], personalMsrs.map(mapPersonalMsr)) : fallbackTeamMsrs[0];
 
   return {
