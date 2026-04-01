@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BrandLogo } from "@/components/layout/brand-logo";
 import { ButtonLink } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
@@ -14,12 +15,10 @@ export default async function Home() {
       <div className="absolute inset-x-0 top-0 h-72 bg-[radial-gradient(circle_at_top,rgba(37,99,235,0.1),transparent_60%)]" />
       <div className="relative mx-auto max-w-7xl px-4 pb-16 pt-5 sm:px-6 lg:px-8">
         <header className="flex items-center justify-between gap-4">
-          <Link href="/" className="text-sm font-semibold tracking-tight text-foreground">
-            MSR Command Center
-          </Link>
+          <BrandLogo />
           <nav className="hidden items-center gap-3 md:flex">
             {marketingNav.map((item) => (
-              <Link key={item.href} href={item.href} className="rounded-full px-4 py-2 text-sm font-medium text-foreground transition hover:bg-muted">
+              <Link key={item.href} href={item.href} className="rounded-lg px-4 py-2 text-sm font-medium text-foreground transition hover:bg-muted">
                 {item.label}
               </Link>
             ))}
@@ -28,8 +27,8 @@ export default async function Home() {
 
         <section className="grid gap-10 py-16 lg:grid-cols-[1.05fr_0.95fr] lg:py-20">
           <div className="space-y-8">
-            <div className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-2 text-sm shadow-soft">
-              <Badge variant="accent">Enterprise workflow platform</Badge>
+            <div className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-sm shadow-soft">
+              <Badge variant="accent">FlowForge platform</Badge>
               <span>Boards, reporting, and team visibility in one product</span>
             </div>
             <div className="space-y-5">
@@ -37,7 +36,7 @@ export default async function Home() {
                 Keep work, reporting cycles, and executive summaries in one clean operating system.
               </h1>
               <p className="max-w-2xl text-lg leading-8 text-muted-foreground">
-                MSR Command Center gives every team member a personal board, helps managers coordinate assignments across the team,
+                FlowForge gives every team member a personal board, helps managers coordinate assignments across the team,
                 and turns day-to-day execution into reporting, dashboards, and exports without duplicate admin work.
               </p>
             </div>
@@ -73,7 +72,7 @@ export default async function Home() {
                 <Snapshot label="Personal MSRs" value="9/10" detail="submitted or drafted" />
                 <Snapshot label="Reports ready" value="1" detail="team MSR finalized" />
               </div>
-              <div className="rounded-[1rem] border border-border bg-muted p-5">
+              <div className="rounded-[0.8rem] border border-border bg-muted p-5">
                 <p className="text-sm font-semibold uppercase tracking-[0.2em] text-accent">Cycle timeline</p>
                 <div className="mt-4 space-y-3 text-sm">
                   <TimelineRow label="Capture" value="cards, notes, blockers, and manager asks move through one system of record" />
@@ -89,7 +88,7 @@ export default async function Home() {
           {highlights.pillars.map((pillar, index) => (
             <Card key={pillar} className="h-full">
               <CardBody className="space-y-3">
-                <div className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-accent/10 text-sm font-semibold text-accent">
+                <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10 text-sm font-semibold text-accent">
                   0{index + 1}
                 </div>
                 <h3 className="text-lg font-semibold">Product pillar</h3>
@@ -145,7 +144,7 @@ function Metric({ label, value, detail }: { label: string; value: string; detail
 
 function Snapshot({ label, value, detail }: { label: string; value: string; detail: string }) {
   return (
-    <div className="rounded-[1rem] border border-border bg-surface-2 p-4">
+    <div className="rounded-[0.8rem] border border-border bg-surface-2 p-4">
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">{label}</p>
       <p className="mt-2 text-2xl font-semibold">{value}</p>
       <p className="mt-1 text-sm text-muted-foreground">{detail}</p>

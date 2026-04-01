@@ -15,10 +15,10 @@ const mono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "MSR Command Center",
-    template: "%s | MSR Command Center",
+    default: "FlowForge Command Center",
+    template: "%s | FlowForge Command Center",
   },
-  description: "Multi-tenant SaaS for boards, MSRs, reporting, exports, and team operations.",
+  description: "FlowForge Command Center: multi-tenant SaaS for boards, MSRs, reporting, exports, and team operations.",
 };
 
 export default function RootLayout({
@@ -32,4 +32,3 @@ export default function RootLayout({
     </html>
   );
 }
-
