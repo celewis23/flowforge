@@ -45,7 +45,7 @@ function AppShellClient({
 }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [sidebarExpanded, setSidebarExpanded] = useState(false);
+  const [sidebarExpanded, setSidebarExpanded] = useState(true);
 
   const grouped = useMemo(() => appNav.reduce<Record<string, typeof appNav>>((acc, item) => {
     acc[item.group] = acc[item.group] ?? [];
@@ -64,9 +64,9 @@ function AppShellClient({
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className={cn("mx-auto grid min-h-screen max-w-[1680px] gap-4 p-3 lg:p-3", sidebarExpanded ? "lg:grid-cols-[18rem_1fr]" : "lg:grid-cols-[4.5rem_1fr]")}>
-        <aside className={cn("hidden rounded-[0.7rem] border border-border bg-surface px-2 py-3 shadow-soft transition-[width,padding] duration-200 lg:block", sidebarExpanded && "px-3")}>
+        <aside className={cn("relative hidden rounded-[0.7rem] border border-border bg-surface px-2 py-3 shadow-soft transition-[width,padding] duration-200 lg:block", sidebarExpanded && "px-3")}>
           <div className={cn("flex h-full flex-col gap-5", sidebarExpanded ? "items-stretch" : "items-center")}>
-            <div className={cn("flex", sidebarExpanded ? "items-center justify-between rounded-[0.7rem] border border-border bg-surface-2 px-3 py-3" : "flex-col items-center gap-3")}>
+            <div className={cn("flex", sidebarExpanded ? "items-center rounded-[0.7rem] border border-border bg-surface-2 px-3 py-3" : "flex-col items-center gap-3")}>
               {sidebarExpanded ? (
                 <BrandLogo sidebarLockup className="min-w-0 flex-1 overflow-hidden" />
               ) : (
@@ -74,18 +74,19 @@ function AppShellClient({
                   <BrandLogo compact iconOnly className="justify-center" />
                 </div>
               )}
-              <button
-                type="button"
-                onClick={() => setSidebarExpanded((value) => !value)}
-                className={cn(
-                  "grid h-9 w-9 shrink-0 place-items-center rounded-[0.65rem] border border-border text-muted-foreground transition hover:bg-muted hover:text-foreground",
-                )}
-                aria-label={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
-                title={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
-              >
-                <ChevronDoubleIcon expanded={sidebarExpanded} />
-              </button>
             </div>
+            <button
+              type="button"
+              onClick={() => setSidebarExpanded((value) => !value)}
+              className={cn(
+                "absolute top-[5.65rem] z-20 hidden h-8 w-8 -translate-y-1/2 place-items-center rounded-full border border-border bg-surface-2 text-muted-foreground shadow-[0_8px_18px_rgba(16,44,88,0.12)] transition hover:bg-muted hover:text-foreground lg:grid",
+                sidebarExpanded ? "-right-4" : "-right-4",
+              )}
+              aria-label={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
+              title={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
+            >
+              <ChevronDoubleIcon expanded={sidebarExpanded} />
+            </button>
             <nav className={cn("flex flex-1 flex-col gap-2", sidebarExpanded ? "items-stretch" : "items-center")}>
               {railItems.map((item) => {
                 const active = pathname === item.href;
