@@ -71,7 +71,7 @@ function AppShellClient({
                 <BrandLogo sidebarLockup className="min-w-0 flex-1 overflow-hidden" />
               ) : (
                 <div className="grid h-11 w-11 place-items-center rounded-[0.7rem] border border-border bg-surface-2">
-                  <BrandLogo compact iconOnly className="justify-center" />
+                  <BrandLogo iconOnly className="justify-center" />
                 </div>
               )}
             </div>
@@ -134,7 +134,7 @@ function AppShellClient({
                   Menu
                 </Button>
                 <div className="flex items-center gap-3">
-                  <BrandLogo compact className="lg:hidden" />
+                  <BrandLogo className="lg:hidden" />
                   <div className="hidden lg:block">
                     <p className="text-sm font-semibold">{currentOrg.name}</p>
                     <p className="text-xs text-muted-foreground">{currentUser.role} workspace</p>
