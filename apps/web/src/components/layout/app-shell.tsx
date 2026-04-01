@@ -55,11 +55,11 @@ function AppShellClient({
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto grid min-h-screen max-w-[1680px] gap-4 p-3 lg:grid-cols-[19.5rem_1fr] lg:p-4">
-        <aside className="hidden rounded-[2rem] border border-white/10 bg-[linear-gradient(180deg,rgba(7,14,27,0.92),rgba(12,20,36,0.86))] px-4 py-5 shadow-soft lg:block">
+      <div className="mx-auto grid min-h-screen max-w-[1680px] gap-4 p-3 lg:grid-cols-[18rem_1fr] lg:p-4">
+        <aside className="hidden rounded-[1.5rem] border border-border bg-surface px-4 py-5 shadow-soft lg:block">
           <div className="flex h-full flex-col gap-6">
-            <div className="rounded-[1.6rem] border border-white/10 bg-white/6 p-4 backdrop-blur-md">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-accent">Mission control</p>
+            <div className="rounded-[1.25rem] border border-border bg-surface-2 p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-accent">Workspace</p>
               <div className="flex items-center gap-3">
                 <Avatar name={currentUser.name} color={currentUser.avatarColor} />
                 <div>
@@ -72,7 +72,7 @@ function AppShellClient({
                 <Badge variant="neutral">{unreadNotifications} notifications</Badge>
               </div>
             </div>
-            <div className="rounded-[1.6rem] border border-white/10 bg-[linear-gradient(135deg,rgba(45,212,191,0.12),rgba(96,165,250,0.08))] p-4">
+            <div className="rounded-[1.25rem] border border-border bg-muted p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-accent">Operations signal</p>
               <p className="mt-3 text-sm leading-6 text-muted-foreground">
                 Boards, reporting cycles, and executive-ready summaries now move through one continuous workflow.
@@ -92,8 +92,8 @@ function AppShellClient({
                           className={cn(
                             "rounded-[1.1rem] px-3 py-2.5 text-sm font-medium transition",
                             active
-                              ? "bg-[linear-gradient(135deg,rgba(45,212,191,0.18),rgba(96,165,250,0.16))] text-foreground ring-1 ring-white/12"
-                              : "text-foreground hover:bg-white/7",
+                              ? "bg-accent text-white"
+                              : "text-foreground hover:bg-muted",
                           )}
                         >
                           {item.label}
@@ -107,7 +107,7 @@ function AppShellClient({
           </div>
         </aside>
         <div className="flex min-h-screen flex-col">
-          <header className="sticky top-0 z-30 rounded-[1.75rem] border border-white/10 bg-background/70 backdrop-blur-xl">
+          <header className="sticky top-0 z-30 rounded-[1.25rem] border border-border bg-surface/95 backdrop-blur-md">
             <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-6">
               <div className="flex items-center gap-3">
                 <Button variant="secondary" className="lg:hidden" onClick={() => setMobileOpen((value) => !value)}>
@@ -115,7 +115,7 @@ function AppShellClient({
                 </Button>
                 <div>
                   <p className="text-sm font-semibold">{currentOrg.name}</p>
-                  <p className="text-xs text-muted-foreground">Unified work intelligence</p>
+                  <p className="text-xs text-muted-foreground">Team operations</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -123,7 +123,7 @@ function AppShellClient({
                 <ButtonLink href="/notifications" variant="secondary">
                   Inbox {unreadNotifications > 0 ? `(${unreadNotifications})` : ""}
                 </ButtonLink>
-                <div className="hidden items-center gap-3 rounded-full border border-white/10 bg-white/6 px-3 py-2 sm:flex">
+                <div className="hidden items-center gap-3 rounded-full border border-border bg-surface-2 px-3 py-2 sm:flex">
                   <Avatar name={currentUser.name} color={currentUser.avatarColor} className="h-8 w-8 rounded-full" />
                   <div className="leading-tight">
                     <div className="text-sm font-semibold">{currentUser.name}</div>
@@ -134,7 +134,7 @@ function AppShellClient({
             </div>
           </header>
           {mobileOpen ? (
-            <div className="border-b border-white/10 bg-white/6 px-4 py-4 backdrop-blur-md lg:hidden">
+            <div className="border-b border-border bg-surface px-4 py-4 lg:hidden">
               <div className="grid gap-2">
                 {appNav.map((item) => (
                   <Link
@@ -142,7 +142,7 @@ function AppShellClient({
                     href={item.href}
                     className={cn(
                       "rounded-2xl px-3 py-2 text-sm font-medium",
-                      pathname === item.href ? "bg-[linear-gradient(135deg,rgba(45,212,191,0.18),rgba(96,165,250,0.16))] text-foreground" : "text-foreground hover:bg-white/7",
+                      pathname === item.href ? "bg-accent text-white" : "text-foreground hover:bg-muted",
                     )}
                     onClick={() => setMobileOpen(false)}
                   >

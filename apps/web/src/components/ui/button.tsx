@@ -9,11 +9,11 @@ const base =
   "inline-flex items-center justify-center rounded-full font-medium transition duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50";
 
 const variants: Record<Variant, string> = {
-  primary: "bg-[linear-gradient(135deg,var(--color-accent),var(--color-accent-2))] text-slate-950 shadow-[0_16px_40px_rgba(45,212,191,0.25)] hover:-translate-y-0.5 hover:shadow-[0_22px_48px_rgba(96,165,250,0.28)]",
-  secondary: "bg-white/6 text-foreground ring-1 ring-white/10 backdrop-blur-md hover:bg-white/10",
-  ghost: "bg-transparent text-foreground hover:bg-white/7",
-  danger: "bg-danger text-slate-950 shadow-[0_16px_34px_rgba(251,113,133,0.25)] hover:-translate-y-0.5",
-  subtle: "bg-accent/12 text-accent hover:bg-accent/18",
+  primary: "bg-accent text-white shadow-sm hover:bg-accent-2",
+  secondary: "bg-surface-2 text-foreground ring-1 ring-border hover:bg-muted",
+  ghost: "bg-transparent text-foreground hover:bg-muted",
+  danger: "bg-danger text-white shadow-sm hover:brightness-95",
+  subtle: "bg-accent/10 text-accent hover:bg-accent/14",
 };
 
 const sizes: Record<Size, string> = {

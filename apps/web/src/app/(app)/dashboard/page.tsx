@@ -11,11 +11,11 @@ export default async function DashboardPage() {
   return (
     <PageShell
       eyebrow="Dashboard"
-      title="A live view of work pressure, reporting readiness, and team momentum"
-      description="Managers get a signal-rich operating layer. Team members stay anchored on due work, blockers, and what will roll into the next reporting cycle."
+      title="A clear view of team workload, reporting readiness, and current blockers"
+      description="The dashboard keeps the most important operating signals visible without burying the team in visual noise."
       actions={
         <>
-          <Badge variant="accent">Live team signal</Badge>
+          <Badge variant="accent">Live data</Badge>
           <Badge variant="neutral">{data.workload.length} active contributors</Badge>
         </>
       }
@@ -33,13 +33,13 @@ export default async function DashboardPage() {
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Team capacity</p>
               <h2 className="mt-2 text-lg font-semibold">Workload by person</h2>
             </div>
-            <Badge variant="neutral">Dynamic view</Badge>
+            <Badge variant="neutral">Current cycle</Badge>
           </CardHeader>
           <CardBody className="space-y-3">
             {data.workload.slice(0, 6).map((row) => (
               <div
                 key={row.member.id}
-                className="flex items-center justify-between gap-4 rounded-[1.5rem] border border-white/10 bg-white/6 px-4 py-3 backdrop-blur-md"
+                className="flex items-center justify-between gap-4 rounded-[1rem] border border-border bg-surface-2 px-4 py-3"
               >
                 <div>
                   <p className="font-semibold">{row.member.name}</p>
@@ -62,13 +62,13 @@ export default async function DashboardPage() {
             <Badge variant="warning">{data.blockerThemes.length} themes</Badge>
           </CardHeader>
           <CardBody className="space-y-4">
-            <div className="rounded-[1.7rem] border border-white/10 bg-[linear-gradient(145deg,rgba(45,212,191,0.15),rgba(96,165,250,0.12))] p-5">
+            <div className="rounded-[1rem] border border-border bg-muted p-5">
               <p className="text-xs uppercase tracking-[0.22em] text-accent">Team MSR</p>
               <p className="mt-3 text-lg font-semibold text-foreground">{data.latestReport.executiveSummary}</p>
             </div>
             <div className="space-y-2">
               {data.blockerThemes.map((theme) => (
-                <div key={theme} className="rounded-[1.3rem] border border-white/10 bg-white/6 px-4 py-3 text-sm backdrop-blur-md">
+                <div key={theme} className="rounded-[1rem] border border-border bg-surface-2 px-4 py-3 text-sm">
                   {theme}
                 </div>
               ))}

@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 type Variant = "neutral" | "success" | "warning" | "danger" | "accent";
 
 const variants: Record<Variant, string> = {
-  neutral: "bg-white/7 text-foreground ring-1 ring-white/10",
+  neutral: "bg-muted text-muted-foreground ring-1 ring-border",
   success: "bg-success/14 text-success ring-1 ring-success/22",
   warning: "bg-warning/14 text-warning ring-1 ring-warning/22",
   danger: "bg-danger/14 text-danger ring-1 ring-danger/22",
