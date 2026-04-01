@@ -24,13 +24,8 @@ export default async function Home() {
         </header>
 
         <section className="grid items-start gap-6 py-4 lg:grid-cols-[1.1fr_0.9fr] lg:py-5">
-          <div className="space-y-7 pt-1">
-            <div className="space-y-4">
-              <BrandLogo hero className="w-fit" />
-              <p className="max-w-2xl text-lg leading-8 text-muted-foreground">
-                Workforce clarity, forged into a real operating dashboard for boards, reporting, assignments, and team-wide visibility.
-              </p>
-            </div>
+          <div className="space-y-6 pt-1">
+            <BrandLogo hero className="w-fit" />
             <div className="inline-flex items-center gap-2 rounded-[0.65rem] border border-border bg-surface px-3 py-2 text-sm shadow-soft">
               <Badge variant="accent">FlowForge platform</Badge>
               <span>Boards, reporting, and team visibility in one product</span>
