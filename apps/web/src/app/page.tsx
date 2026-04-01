@@ -23,8 +23,8 @@ export default async function Home() {
           </nav>
         </header>
 
-        <section className="grid items-start gap-6 pt-1 pb-4 lg:grid-cols-[1.1fr_0.9fr] lg:pt-0 lg:pb-5">
-          <div className="space-y-6">
+        <section className="grid items-start gap-6 pt-0 pb-4 lg:grid-cols-[1.1fr_0.9fr] lg:pb-5">
+          <div className="space-y-6 lg:-mt-3">
             <BrandLogo hero className="w-fit" />
             <div className="inline-flex items-center gap-2 rounded-[0.65rem] border border-border bg-surface px-3 py-2 text-sm shadow-soft">
               <Badge variant="accent">FlowForge platform</Badge>
