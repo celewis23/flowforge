@@ -21,7 +21,7 @@ export default async function Home() {
               <span>Boards, reporting, and team visibility in one product</span>
             </div>
             <div className="space-y-4">
-              <h1 className="max-w-3xl text-[3rem] font-semibold leading-[0.94] tracking-tight text-foreground sm:text-[3.7rem] lg:text-[4.2rem]">
+              <h1 className="max-w-3xl text-[3rem] font-semibold leading-[1.1] tracking-tight text-foreground sm:text-[3.8rem] lg:text-[3.8rem]">
                 Workforce clarity, forged into a real operating dashboard.
               </h1>
               <p className="max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
