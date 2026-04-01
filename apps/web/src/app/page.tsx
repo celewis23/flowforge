@@ -26,6 +26,7 @@ export default async function Home() {
 
         <section className="grid gap-6 py-8 lg:grid-cols-[1.1fr_0.9fr] lg:py-10">
           <div className="space-y-8">
+            <BrandLogo className="rounded-[0.7rem] border border-border bg-surface px-4 py-3 shadow-soft w-fit" />
             <div className="inline-flex items-center gap-2 rounded-[0.65rem] border border-border bg-surface px-3 py-2 text-sm shadow-soft">
               <Badge variant="accent">FlowForge platform</Badge>
               <span>Boards, reporting, and team visibility in one product</span>
