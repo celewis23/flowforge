@@ -4,11 +4,11 @@ import { ButtonLink } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { marketingNav } from "@/lib/navigation";
-import { getLandingHighlights, getMarketingStats } from "@/lib/api";
+import { getMarketingStats } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
 
 export default async function Home() {
-  const [stats, highlights] = await Promise.all([getMarketingStats(), getLandingHighlights()]);
+  const stats = await getMarketingStats();
 
   return (
     <main className="relative overflow-hidden">
@@ -105,14 +105,33 @@ export default async function Home() {
         </section>
 
         <section className="grid gap-4 lg:grid-cols-3">
-          {highlights.pillars.map((pillar, index) => (
-            <Card key={pillar} className="h-full">
+          {[
+            {
+              label: "01",
+              title: "Manager-assigned work stays visible",
+              description:
+                "Assign priorities directly onto each teammate's board, require acknowledgment, and keep ownership clear without losing context.",
+            },
+            {
+              label: "02",
+              title: "Reporting writes itself from real work",
+              description:
+                "Cards, blockers, notes, and progress updates roll into personal MSRs and team summaries so reporting reflects what actually happened.",
+            },
+            {
+              label: "03",
+              title: "One console for team-wide visibility",
+              description:
+                "See the aggregated board, overdue work, blocked trends, and project health in one operating view built for managers and executives.",
+            },
+          ].map((item) => (
+            <Card key={item.title} className="h-full">
               <CardBody className="space-y-3">
                 <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10 text-sm font-semibold text-accent">
-                  0{index + 1}
+                  {item.label}
                 </div>
-                <h3 className="text-lg font-semibold">Product pillar</h3>
-                <p className="text-sm leading-6 text-muted-foreground">{pillar}</p>
+                <h3 className="text-lg font-semibold">{item.title}</h3>
+                <p className="text-sm leading-6 text-muted-foreground">{item.description}</p>
               </CardBody>
             </Card>
           ))}
