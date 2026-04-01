@@ -5,19 +5,21 @@ import { cn } from "@/lib/utils";
 export function BrandLogo({
   compact = false,
   inverse = false,
+  iconOnly = false,
   className,
 }: {
   compact?: boolean;
   inverse?: boolean;
+  iconOnly?: boolean;
   className?: string;
 }) {
   return (
     <Link href="/" className={cn("inline-flex items-center gap-3", className)}>
-      <Image src="/flowforge-logo.png" alt="FlowForge" width={compact ? 34 : 42} height={compact ? 34 : 42} className="h-auto w-auto" priority />
-      <div className="leading-none">
+      <Image src="/flowforge-icon.png" alt="FlowForge" width={compact ? 32 : 40} height={compact ? 32 : 40} className="h-auto w-auto" priority />
+      {iconOnly ? null : <div className="leading-none">
         <div className={cn("text-[0.95rem] font-semibold tracking-tight", inverse ? "text-white" : "text-foreground")}>FlowForge</div>
         <div className={cn("mt-1 text-[0.66rem] font-medium uppercase tracking-[0.2em]", inverse ? "text-white/72" : "text-muted-foreground")}>Command Center</div>
-      </div>
+      </div>}
     </Link>
   );
 }

@@ -12,9 +12,8 @@ export default async function Home() {
 
   return (
     <main className="relative overflow-hidden">
-      <div className="absolute inset-x-0 top-0 h-72 bg-[radial-gradient(circle_at_top,rgba(37,99,235,0.1),transparent_60%)]" />
       <div className="relative mx-auto max-w-7xl px-4 pb-16 pt-5 sm:px-6 lg:px-8">
-        <header className="flex items-center justify-between gap-4">
+        <header className="flex items-center justify-between gap-4 rounded-[0.7rem] border border-border bg-surface px-4 py-3 shadow-soft">
           <BrandLogo />
           <nav className="hidden items-center gap-3 md:flex">
             {marketingNav.map((item) => (
@@ -25,19 +24,18 @@ export default async function Home() {
           </nav>
         </header>
 
-        <section className="grid gap-10 py-16 lg:grid-cols-[1.05fr_0.95fr] lg:py-20">
+        <section className="grid gap-6 py-8 lg:grid-cols-[1.1fr_0.9fr] lg:py-10">
           <div className="space-y-8">
-            <div className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-sm shadow-soft">
+            <div className="inline-flex items-center gap-2 rounded-[0.65rem] border border-border bg-surface px-3 py-2 text-sm shadow-soft">
               <Badge variant="accent">FlowForge platform</Badge>
               <span>Boards, reporting, and team visibility in one product</span>
             </div>
             <div className="space-y-5">
-              <h1 className="max-w-3xl text-5xl font-semibold tracking-tight text-foreground sm:text-6xl">
-                Keep work, reporting cycles, and executive summaries in one clean operating system.
+              <h1 className="max-w-3xl text-5xl font-semibold tracking-tight text-foreground sm:text-[4.2rem]">
+                Workforce clarity, forged into a real operating dashboard.
               </h1>
               <p className="max-w-2xl text-lg leading-8 text-muted-foreground">
-                FlowForge gives every team member a personal board, helps managers coordinate assignments across the team,
-                and turns day-to-day execution into reporting, dashboards, and exports without duplicate admin work.
+                FlowForge gives leaders and teams one place to manage boards, assignments, reporting cycles, MSRs, and executive-ready summaries without patching workflows together.
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-3">
@@ -60,24 +58,45 @@ export default async function Home() {
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">Live product snapshot</p>
-                  <h2 className="mt-2 text-xl font-semibold">Team overview</h2>
+                  <h2 className="mt-2 text-xl font-semibold">Operations console</h2>
                 </div>
                 <Badge variant="warning">2 blockers</Badge>
               </div>
             </CardHeader>
             <CardBody className="space-y-4">
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Snapshot label="Assigned work" value="18" detail="across personal boards" />
-                <Snapshot label="Due soon" value="6" detail="next 7 days" />
-                <Snapshot label="Personal MSRs" value="9/10" detail="submitted or drafted" />
-                <Snapshot label="Reports ready" value="1" detail="team MSR finalized" />
+              <div className="grid gap-3 sm:grid-cols-3">
+                <Snapshot label="OEE trend" value="89%" detail="up 4.5 this month" />
+                <Snapshot label="Output" value="1.2k" detail="units completed" />
+                <Snapshot label="Scrap" value="2.1%" detail="under target band" />
               </div>
-              <div className="rounded-[0.8rem] border border-border bg-muted p-5">
-                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-accent">Cycle timeline</p>
-                <div className="mt-4 space-y-3 text-sm">
-                  <TimelineRow label="Capture" value="cards, notes, blockers, and manager asks move through one system of record" />
-                  <TimelineRow label="Compile" value="personal MSRs roll into team reporting without duplicate manual formatting" />
-                  <TimelineRow label="Broadcast" value="exec-ready summaries, exports, and dashboards stay aligned with real work" />
+              <div className="grid gap-3 sm:grid-cols-[1.25fr_0.75fr]">
+                <div className="rounded-[0.65rem] border border-border bg-surface-2 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Production forecast vs. actual</p>
+                  <div className="mt-5 grid h-44 grid-cols-7 items-end gap-3">
+                    {[
+                      [44, 68, 26],
+                      [58, 80, 34],
+                      [52, 76, 28],
+                      [60, 86, 22],
+                      [63, 91, 25],
+                      [55, 84, 31],
+                      [49, 73, 27],
+                    ].map((bars, index) => (
+                      <div key={index} className="flex h-full flex-col justify-end gap-1">
+                        <div className="rounded-t bg-[#f7b733]" style={{ height: `${bars[2]}px` }} />
+                        <div className="rounded-t bg-accent-2" style={{ height: `${bars[1]}px` }} />
+                        <div className="rounded-t bg-success" style={{ height: `${bars[0]}px` }} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="rounded-[0.65rem] border border-border bg-surface-2 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Quality alerts</p>
+                  <div className="mt-4 space-y-2">
+                    <AlertRow label="Machine 4 down" value="14m" />
+                    <AlertRow label="Machine 2 down" value="12m" />
+                    <AlertRow label="Material shortage" value="7m" />
+                  </div>
                 </div>
               </div>
             </CardBody>
@@ -144,7 +163,7 @@ function Metric({ label, value, detail }: { label: string; value: string; detail
 
 function Snapshot({ label, value, detail }: { label: string; value: string; detail: string }) {
   return (
-    <div className="rounded-[0.8rem] border border-border bg-surface-2 p-4">
+    <div className="rounded-[0.65rem] border border-border bg-surface-2 p-4">
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">{label}</p>
       <p className="mt-2 text-2xl font-semibold">{value}</p>
       <p className="mt-1 text-sm text-muted-foreground">{detail}</p>
@@ -152,11 +171,11 @@ function Snapshot({ label, value, detail }: { label: string; value: string; deta
   );
 }
 
-function TimelineRow({ label, value }: { label: string; value: string }) {
+function AlertRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-start justify-between gap-4 border-b border-border pb-3 last:border-b-0 last:pb-0">
-      <span className="font-medium">{label}</span>
-      <span className="max-w-sm text-right text-muted-foreground">{value}</span>
+    <div className="flex items-center justify-between gap-3 rounded-[0.55rem] border border-danger/35 bg-danger/5 px-3 py-2">
+      <span className="text-sm font-medium">{label}</span>
+      <Badge variant="danger">{value}</Badge>
     </div>
   );
 }
