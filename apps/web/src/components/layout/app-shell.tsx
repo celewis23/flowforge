@@ -45,6 +45,7 @@ function AppShellClient({
 }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [sidebarExpanded, setSidebarExpanded] = useState(false);
 
   const grouped = useMemo(() => appNav.reduce<Record<string, typeof appNav>>((acc, item) => {
     acc[item.group] = acc[item.group] ?? [];
@@ -62,13 +63,30 @@ function AppShellClient({
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto grid min-h-screen max-w-[1680px] gap-4 p-3 lg:grid-cols-[4.5rem_1fr] lg:p-3">
-        <aside className="hidden rounded-[0.7rem] border border-border bg-surface px-2 py-3 shadow-soft lg:block">
-          <div className="flex h-full flex-col items-center gap-5">
-            <div className="grid h-11 w-11 place-items-center rounded-[0.7rem] border border-border bg-surface-2">
-              <BrandLogo compact iconOnly />
+      <div className={cn("mx-auto grid min-h-screen max-w-[1680px] gap-4 p-3 lg:p-3", sidebarExpanded ? "lg:grid-cols-[16rem_1fr]" : "lg:grid-cols-[4.5rem_1fr]")}>
+        <aside className={cn("hidden rounded-[0.7rem] border border-border bg-surface px-2 py-3 shadow-soft transition-[width,padding] duration-200 lg:block", sidebarExpanded && "px-3")}>
+          <div className={cn("flex h-full flex-col gap-5", sidebarExpanded ? "items-stretch" : "items-center")}>
+            <div className={cn("flex", sidebarExpanded ? "items-center justify-between rounded-[0.7rem] border border-border bg-surface-2 px-3 py-3" : "flex-col items-center gap-3")}>
+              {sidebarExpanded ? (
+                <BrandLogo compact={false} stacked className="max-w-full overflow-hidden" />
+              ) : (
+                <div className="grid h-11 w-11 place-items-center rounded-[0.7rem] border border-border bg-surface-2">
+                  <BrandLogo compact iconOnly className="justify-center" />
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={() => setSidebarExpanded((value) => !value)}
+                className={cn(
+                  "grid h-9 w-9 shrink-0 place-items-center rounded-[0.65rem] border border-border text-muted-foreground transition hover:bg-muted hover:text-foreground",
+                )}
+                aria-label={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
+                title={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
+              >
+                <ChevronDoubleIcon expanded={sidebarExpanded} />
+              </button>
             </div>
-            <nav className="flex flex-1 flex-col items-center gap-2">
+            <nav className={cn("flex flex-1 flex-col gap-2", sidebarExpanded ? "items-stretch" : "items-center")}>
               {railItems.map((item) => {
                 const active = pathname === item.href;
                 return (
@@ -77,21 +95,32 @@ function AppShellClient({
                     href={item.href}
                     title={item.label}
                     className={cn(
-                      "group grid h-11 w-11 place-items-center rounded-[0.7rem] border transition",
+                      "group rounded-[0.7rem] border transition",
+                      sidebarExpanded
+                        ? "flex items-center gap-3 px-3 py-3"
+                        : "grid h-11 w-11 place-items-center",
                       active ? "border-accent bg-accent/8 text-accent" : "border-transparent text-muted-foreground hover:border-border hover:bg-muted",
                     )}
                   >
                     <RailIcon label={item.label} active={active} />
+                    {sidebarExpanded ? <span className="truncate text-sm font-medium">{item.label}</span> : null}
                   </Link>
                 );
               })}
             </nav>
-            <div className="grid gap-2">
-              <Link href="/notifications" className="grid h-11 w-11 place-items-center rounded-[0.7rem] border border-transparent text-muted-foreground transition hover:border-border hover:bg-muted">
+            <div className={cn("grid gap-2", sidebarExpanded ? "items-stretch" : "items-center")}>
+              <Link
+                href="/notifications"
+                className={cn(
+                  "rounded-[0.7rem] border border-transparent text-muted-foreground transition hover:border-border hover:bg-muted",
+                  sidebarExpanded ? "flex items-center gap-3 px-3 py-3" : "grid h-11 w-11 place-items-center",
+                )}
+              >
                 <span className="relative">
                   <BellIcon />
                   {unreadNotifications > 0 ? <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-accent-2" /> : null}
                 </span>
+                {sidebarExpanded ? <span className="text-sm font-medium">Notifications</span> : null}
               </Link>
             </div>
           </div>
@@ -195,6 +224,15 @@ function BellIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
       <path d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm7-6V11a7 7 0 1 0-14 0v5l-2 2v1h18v-1l-2-2Z" fill="currentColor" />
+    </svg>
+  );
+}
+
+function ChevronDoubleIcon({ expanded }: { expanded: boolean }) {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className={cn("transition-transform", expanded && "rotate-180")}>
+      <path d="m14 7-5 5 5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="m19 7-5 5 5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
