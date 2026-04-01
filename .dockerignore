@@ -1,0 +1,17 @@
+.git
+.github
+.next
+.cache
+.vs
+**/bin
+**/obj
+**/node_modules
+**/coverage
+**/*.user
+**/*.suo
+**/*.log
+apps/web/.env.local
+apps/web/.next
+apps/api/**/appsettings.*.json
+docker/.env
+
