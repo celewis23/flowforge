@@ -12,8 +12,8 @@ export default async function Home() {
 
   return (
     <main className="relative overflow-hidden">
-      <div className="relative mx-auto max-w-7xl px-4 pb-16 pt-5 sm:px-6 lg:px-8">
-        <header className="flex items-center justify-end gap-6 py-2">
+      <div className="relative mx-auto max-w-7xl px-4 pb-16 pt-0 sm:px-6 lg:px-8">
+        <header className="flex items-start justify-end gap-6 pt-0 pb-1">
           <nav className="hidden items-center gap-3 md:flex">
             {marketingNav.map((item) => (
               <Link key={item.href} href={item.href} className="rounded-lg px-4 py-2 text-sm font-medium text-foreground transition hover:bg-muted">
@@ -23,8 +23,8 @@ export default async function Home() {
           </nav>
         </header>
 
-        <section className="grid items-start gap-6 pt-0 pb-4 lg:grid-cols-[1.1fr_0.9fr] lg:pb-5">
-          <div className="space-y-6 lg:-mt-3">
+        <section className="grid items-start gap-6 pt-0 pb-4 lg:-mt-8 lg:grid-cols-[1.1fr_0.9fr] lg:pb-5">
+          <div className="space-y-6 lg:-mt-10">
             <BrandLogo hero className="w-fit" />
             <div className="inline-flex items-center gap-2 rounded-[0.65rem] border border-border bg-surface px-3 py-2 text-sm shadow-soft">
               <Badge variant="accent">FlowForge platform</Badge>
