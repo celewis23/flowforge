@@ -63,12 +63,12 @@ function AppShellClient({
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <div className={cn("mx-auto grid min-h-screen max-w-[1680px] gap-4 p-3 lg:p-3", sidebarExpanded ? "lg:grid-cols-[16rem_1fr]" : "lg:grid-cols-[4.5rem_1fr]")}>
+      <div className={cn("mx-auto grid min-h-screen max-w-[1680px] gap-4 p-3 lg:p-3", sidebarExpanded ? "lg:grid-cols-[18rem_1fr]" : "lg:grid-cols-[4.5rem_1fr]")}>
         <aside className={cn("hidden rounded-[0.7rem] border border-border bg-surface px-2 py-3 shadow-soft transition-[width,padding] duration-200 lg:block", sidebarExpanded && "px-3")}>
           <div className={cn("flex h-full flex-col gap-5", sidebarExpanded ? "items-stretch" : "items-center")}>
             <div className={cn("flex", sidebarExpanded ? "items-center justify-between rounded-[0.7rem] border border-border bg-surface-2 px-3 py-3" : "flex-col items-center gap-3")}>
               {sidebarExpanded ? (
-                <BrandLogo compact={false} stacked className="max-w-full overflow-hidden" />
+                <BrandLogo sidebarLockup className="min-w-0 flex-1 overflow-hidden" />
               ) : (
                 <div className="grid h-11 w-11 place-items-center rounded-[0.7rem] border border-border bg-surface-2">
                   <BrandLogo compact iconOnly className="justify-center" />
@@ -195,7 +195,7 @@ function AppShellClient({
             </div>
           ) : null}
           <main className="flex-1 px-0 py-4 sm:px-0 lg:px-0">
-            <div className="mx-auto max-w-7xl">{children}</div>
+            <div className="w-full">{children}</div>
           </main>
         </div>
       </div>
