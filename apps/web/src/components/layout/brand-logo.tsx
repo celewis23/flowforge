@@ -17,14 +17,14 @@ export function BrandLogo({
   sidebarLockup?: boolean;
   className?: string;
 }) {
-  const iconSize = iconOnly ? (compact ? 26 : 30) : sidebarLockup ? 42 : compact ? 30 : 36;
+  const iconSize = iconOnly ? (compact ? 22 : 26) : sidebarLockup ? 32 : compact ? 26 : 34;
 
   return (
     <Link href="/" className={cn("inline-flex min-w-0 items-center", sidebarLockup ? "gap-2.5" : "gap-3", stacked && "items-start", className)}>
       <div
         className={cn(
           "grid shrink-0 place-items-center overflow-hidden",
-          iconOnly ? "h-8 w-8" : sidebarLockup ? "h-11 w-11" : compact ? "h-8 w-8" : "h-10 w-10",
+          iconOnly ? "h-7 w-7" : sidebarLockup ? "h-9 w-9" : compact ? "h-8 w-8" : "h-10 w-10",
         )}
       >
         <Image
@@ -40,7 +40,7 @@ export function BrandLogo({
         <div
           className={cn(
             "truncate font-semibold tracking-tight",
-            sidebarLockup ? "text-[0.88rem] leading-none" : "text-[0.98rem]",
+            sidebarLockup ? "text-[0.8rem] leading-none" : "text-[0.98rem]",
             inverse ? "text-white" : "text-foreground",
           )}
         >
@@ -48,7 +48,7 @@ export function BrandLogo({
         </div>
         <div
           className={cn(
-            sidebarLockup ? "text-[0.76rem] leading-none" : "text-[0.72rem]",
+            sidebarLockup ? "text-[0.64rem] leading-none" : "text-[0.72rem]",
             inverse ? "text-white/72" : "text-muted-foreground",
           )}
         >
