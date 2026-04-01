@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useMemo, useState } from "react";
+import { BrandLogo } from "@/components/layout/brand-logo";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button, ButtonLink } from "@/components/ui/button";
@@ -56,15 +57,16 @@ function AppShellClient({
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="mx-auto grid min-h-screen max-w-[1680px] gap-4 p-3 lg:grid-cols-[18rem_1fr] lg:p-4">
-        <aside className="hidden rounded-[1.5rem] border border-border bg-surface px-4 py-5 shadow-soft lg:block">
+        <aside className="hidden rounded-[0.8rem] border border-accent/65 bg-[var(--navy-strong)] px-4 py-5 text-white shadow-soft lg:block">
           <div className="flex h-full flex-col gap-6">
-            <div className="rounded-[1.25rem] border border-border bg-surface-2 p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-accent">Workspace</p>
+            <BrandLogo compact inverse />
+            <div className="rounded-[0.65rem] border border-white/12 bg-white/6 p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/72">Workspace</p>
               <div className="flex items-center gap-3">
                 <Avatar name={currentUser.name} color={currentUser.avatarColor} />
                 <div>
-                  <p className="text-sm font-semibold">{currentOrg.name}</p>
-                  <p className="text-xs text-muted-foreground">{currentOrg.plan} tenant</p>
+                  <p className="text-sm font-semibold text-white">{currentOrg.name}</p>
+                  <p className="text-xs text-white/60">{currentOrg.plan} tenant</p>
                 </div>
               </div>
               <div className="mt-4 flex items-center justify-between gap-3">
@@ -72,16 +74,16 @@ function AppShellClient({
                 <Badge variant="neutral">{unreadNotifications} notifications</Badge>
               </div>
             </div>
-            <div className="rounded-[1.25rem] border border-border bg-muted p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-accent">Operations signal</p>
-              <p className="mt-3 text-sm leading-6 text-muted-foreground">
+            <div className="rounded-[0.65rem] border border-white/12 bg-white/5 p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/72">Operations signal</p>
+              <p className="mt-3 text-sm leading-6 text-white/65">
                 Boards, reporting cycles, and executive-ready summaries now move through one continuous workflow.
               </p>
             </div>
             <nav className="space-y-6 overflow-y-auto pr-1">
               {Object.entries(grouped).map(([group, items]) => (
                 <div key={group} className="space-y-2">
-                  <p className="px-3 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">{group}</p>
+                  <p className="px-3 text-xs font-semibold uppercase tracking-[0.2em] text-white/44">{group}</p>
                   <div className="grid gap-1">
                     {items.map((item) => {
                       const active = pathname === item.href;
@@ -90,10 +92,10 @@ function AppShellClient({
                           key={item.href}
                           href={item.href}
                           className={cn(
-                            "rounded-[1.1rem] px-3 py-2.5 text-sm font-medium transition",
+                            "rounded-lg px-3 py-2.5 text-sm font-medium transition",
                             active
-                              ? "bg-accent text-white"
-                              : "text-foreground hover:bg-muted",
+                              ? "bg-white/12 text-white ring-1 ring-white/18"
+                              : "text-white/82 hover:bg-white/8",
                           )}
                         >
                           {item.label}
@@ -107,13 +109,14 @@ function AppShellClient({
           </div>
         </aside>
         <div className="flex min-h-screen flex-col">
-          <header className="sticky top-0 z-30 rounded-[1.25rem] border border-border bg-surface/95 backdrop-blur-md">
+          <header className="sticky top-0 z-30 rounded-[0.8rem] border border-accent/45 bg-surface/95 backdrop-blur-md">
             <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-6">
               <div className="flex items-center gap-3">
                 <Button variant="secondary" className="lg:hidden" onClick={() => setMobileOpen((value) => !value)}>
                   Menu
                 </Button>
-                <div>
+                <BrandLogo compact className="lg:hidden" />
+                <div className="hidden lg:block">
                   <p className="text-sm font-semibold">{currentOrg.name}</p>
                   <p className="text-xs text-muted-foreground">Team operations</p>
                 </div>
@@ -123,7 +126,7 @@ function AppShellClient({
                 <ButtonLink href="/notifications" variant="secondary">
                   Inbox {unreadNotifications > 0 ? `(${unreadNotifications})` : ""}
                 </ButtonLink>
-                <div className="hidden items-center gap-3 rounded-full border border-border bg-surface-2 px-3 py-2 sm:flex">
+                <div className="hidden items-center gap-3 rounded-lg border border-border bg-surface-2 px-3 py-2 sm:flex">
                   <Avatar name={currentUser.name} color={currentUser.avatarColor} className="h-8 w-8 rounded-full" />
                   <div className="leading-tight">
                     <div className="text-sm font-semibold">{currentUser.name}</div>
@@ -141,7 +144,7 @@ function AppShellClient({
                     key={item.href}
                     href={item.href}
                     className={cn(
-                      "rounded-2xl px-3 py-2 text-sm font-medium",
+                      "rounded-lg px-3 py-2 text-sm font-medium",
                       pathname === item.href ? "bg-accent text-white" : "text-foreground hover:bg-muted",
                     )}
                     onClick={() => setMobileOpen(false)}

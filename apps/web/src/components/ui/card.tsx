@@ -10,7 +10,7 @@ export function Card({
   children: React.ReactNode;
 }) {
   return (
-    <section className={cn("rounded-[1.5rem] border border-border bg-surface shadow-soft", className)} {...props}>
+    <section className={cn("rounded-[0.8rem] border border-accent/55 bg-surface shadow-soft", className)} {...props}>
       {children}
     </section>
   );

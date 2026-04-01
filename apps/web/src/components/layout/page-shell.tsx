@@ -17,7 +17,7 @@ export function PageShell({
 }) {
   return (
     <div className={cn("space-y-7", className)}>
-      <div className="rounded-[1.5rem] border border-border bg-surface px-6 py-6 shadow-soft sm:px-8 sm:py-7">
+      <div className="rounded-[0.8rem] border border-accent/55 bg-surface px-6 py-6 shadow-soft sm:px-8 sm:py-7">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl space-y-3">
             {eyebrow ? <p className="text-xs font-semibold uppercase tracking-[0.28em] text-accent">{eyebrow}</p> : null}
