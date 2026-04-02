@@ -1,6 +1,8 @@
+using Msr.CommandCenter.Domain.Entities;
+
 namespace Msr.CommandCenter.Infrastructure.Services;
 
-internal interface IEnterpriseOidcService
+public interface IEnterpriseOidcService
 {
     bool SupportsProvider(string providerType);
     Task<OidcAuthorizationRequest> BuildAuthorizationUrlAsync(EnterpriseProviderOption provider, EnterpriseAuthSession session, CancellationToken cancellationToken);

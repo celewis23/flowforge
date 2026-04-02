@@ -192,6 +192,104 @@ export default async function OrganizationSettingsPage() {
                               </form>
                             ) : null}
                           </div>
+                          <details className="mt-3 rounded-[0.7rem] border border-border bg-surface-2 p-3">
+                            <summary className="cursor-pointer text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                              Edit provider
+                            </summary>
+                            <form action={updateIdentityProviderStateAction} className="mt-3 grid gap-3 lg:grid-cols-2">
+                              <input type="hidden" name="organizationId" value={data.organization.id} />
+                              <input type="hidden" name="identityProviderId" value={provider.id} />
+                              <input type="hidden" name="isEnabled" value={provider.isEnabled ? "true" : "false"} />
+                              <input type="hidden" name="isPrimary" value={provider.isPrimary ? "true" : "false"} />
+                              <div className="space-y-2">
+                                <label className="text-xs font-medium" htmlFor={`provider-name-${provider.id}`}>
+                                  Provider name
+                                </label>
+                                <Input id={`provider-name-${provider.id}`} name="name" defaultValue={provider.name} />
+                              </div>
+                              <div className="space-y-2">
+                                <label className="text-xs font-medium" htmlFor={`provider-type-${provider.id}`}>
+                                  Provider type
+                                </label>
+                                <select
+                                  id={`provider-type-${provider.id}`}
+                                  name="providerType"
+                                  defaultValue={toProviderTypeValue(provider.providerType)}
+                                  className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-foreground shadow-sm"
+                                >
+                                  <option value="1">Microsoft Entra ID</option>
+                                  <option value="2">Google Workspace</option>
+                                  <option value="3">SAML</option>
+                                </select>
+                              </div>
+                              <div className="space-y-2">
+                                <label className="text-xs font-medium" htmlFor={`provider-client-${provider.id}`}>
+                                  Client ID
+                                </label>
+                                <Input id={`provider-client-${provider.id}`} name="clientId" defaultValue={provider.clientId} />
+                              </div>
+                              <div className="space-y-2">
+                                <label className="text-xs font-medium" htmlFor={`provider-secret-${provider.id}`}>
+                                  Client secret reference
+                                </label>
+                                <Input id={`provider-secret-${provider.id}`} name="clientSecretReference" placeholder="Keep current secret or enter a new reference" />
+                              </div>
+                              <div className="space-y-2">
+                                <label className="text-xs font-medium" htmlFor={`provider-authority-${provider.id}`}>
+                                  Authority
+                                </label>
+                                <Input id={`provider-authority-${provider.id}`} name="authority" defaultValue={provider.authority} />
+                              </div>
+                              <div className="space-y-2">
+                                <label className="text-xs font-medium" htmlFor={`provider-metadata-${provider.id}`}>
+                                  Metadata URL
+                                </label>
+                                <Input id={`provider-metadata-${provider.id}`} name="metadataUrl" defaultValue={provider.metadataUrl} />
+                              </div>
+                              <div className="space-y-2">
+                                <label className="text-xs font-medium" htmlFor={`provider-tenant-${provider.id}`}>
+                                  Tenant identifier
+                                </label>
+                                <Input id={`provider-tenant-${provider.id}`} name="tenantIdentifier" defaultValue={provider.tenantIdentifier} />
+                              </div>
+                              <div className="space-y-2">
+                                <label className="text-xs font-medium" htmlFor={`provider-scopes-${provider.id}`}>
+                                  Scopes
+                                </label>
+                                <Input id={`provider-scopes-${provider.id}`} name="scopes" defaultValue={provider.scopes.join(", ")} />
+                              </div>
+                              <div className="space-y-2">
+                                <label className="text-xs font-medium" htmlFor={`provider-domain-hints-${provider.id}`}>
+                                  Domain hints
+                                </label>
+                                <Input id={`provider-domain-hints-${provider.id}`} name="domainHints" defaultValue={provider.domainHints.join(", ")} />
+                              </div>
+                              <div className="space-y-2">
+                                <label className="text-xs font-medium" htmlFor={`provider-provisioning-${provider.id}`}>
+                                  Provisioning mode
+                                </label>
+                                <select
+                                  id={`provider-provisioning-${provider.id}`}
+                                  name="provisioningMode"
+                                  defaultValue={toProvisioningModeValue(provider.provisioningMode)}
+                                  className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-foreground shadow-sm"
+                                >
+                                  <option value="1">None</option>
+                                  <option value="2">Just-in-time</option>
+                                  <option value="3">SCIM</option>
+                                </select>
+                              </div>
+                              <div className="space-y-2 lg:col-span-2">
+                                <label className="text-xs font-medium" htmlFor={`provider-role-mapping-${provider.id}`}>
+                                  Role mappings JSON
+                                </label>
+                                <Textarea id={`provider-role-mapping-${provider.id}`} name="roleMappingsJson" defaultValue="{}" className="min-h-24" />
+                              </div>
+                              <div className="lg:col-span-2">
+                                <Button type="submit" size="sm">Save provider details</Button>
+                              </div>
+                            </form>
+                          </details>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -331,6 +429,87 @@ export default async function OrganizationSettingsPage() {
                       <Button type="submit" size="sm" variant="secondary">{integration.status === "Active" ? "Disable" : "Activate"}</Button>
                     </form>
                   </div>
+                  <details className="mt-3 rounded-[0.7rem] border border-border bg-surface-2 p-3">
+                    <summary className="cursor-pointer text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                      Edit connection
+                    </summary>
+                    <form action={updateIntegrationConnectionStateAction} className="mt-3 grid gap-3">
+                      <input type="hidden" name="organizationId" value={data.organization.id} />
+                      <input type="hidden" name="integrationConnectionId" value={integration.id} />
+                      <div className="grid gap-3 lg:grid-cols-2">
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium" htmlFor={`integration-name-${integration.id}`}>
+                            Connection name
+                          </label>
+                          <Input id={`integration-name-${integration.id}`} name="name" defaultValue={integration.name} />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium" htmlFor={`integration-provider-${integration.id}`}>
+                            Provider
+                          </label>
+                          <select
+                            id={`integration-provider-${integration.id}`}
+                            name="providerType"
+                            defaultValue={toIntegrationProviderValue(integration.providerType)}
+                            className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-foreground shadow-sm"
+                          >
+                            <option value="1">Microsoft 365</option>
+                            <option value="2">Google Workspace</option>
+                            <option value="3">Slack</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium" htmlFor={`integration-client-${integration.id}`}>
+                            Client ID
+                          </label>
+                          <Input id={`integration-client-${integration.id}`} name="clientId" defaultValue={integration.clientId} />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium" htmlFor={`integration-secret-${integration.id}`}>
+                            Client secret reference
+                          </label>
+                          <Input id={`integration-secret-${integration.id}`} name="clientSecretReference" placeholder="Keep current secret or enter a new reference" />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium" htmlFor={`integration-tenant-${integration.id}`}>
+                            Tenant identifier
+                          </label>
+                          <Input id={`integration-tenant-${integration.id}`} name="tenantIdentifier" defaultValue={integration.tenantIdentifier} />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium" htmlFor={`integration-scopes-${integration.id}`}>
+                            Scopes
+                          </label>
+                          <Input id={`integration-scopes-${integration.id}`} name="scopes" defaultValue={integration.scopes.join(", ")} />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-medium" htmlFor={`integration-config-${integration.id}`}>
+                          Configuration JSON
+                        </label>
+                        <Textarea id={`integration-config-${integration.id}`} name="configurationJson" defaultValue="{}" className="min-h-24" />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-medium" htmlFor={`integration-status-${integration.id}`}>
+                          Connection status
+                        </label>
+                        <select
+                          id={`integration-status-${integration.id}`}
+                          name="status"
+                          defaultValue={toIntegrationStatusValue(integration.status)}
+                          className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-foreground shadow-sm"
+                        >
+                          <option value="1">Draft</option>
+                          <option value="2">Active</option>
+                          <option value="3">Disabled</option>
+                          <option value="4">Error</option>
+                        </select>
+                      </div>
+                      <div>
+                        <Button type="submit" size="sm">Save connection details</Button>
+                      </div>
+                    </form>
+                  </details>
                 </div>
               ))
             ) : (
@@ -470,6 +649,19 @@ function toIntegrationProviderValue(value: string) {
       return "2";
     case "Slack":
       return "3";
+    default:
+      return "1";
+  }
+}
+
+function toIntegrationStatusValue(value: string) {
+  switch (value) {
+    case "Active":
+      return "2";
+    case "Disabled":
+      return "3";
+    case "Error":
+      return "4";
     default:
       return "1";
   }

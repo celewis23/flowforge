@@ -2,7 +2,7 @@ using Msr.CommandCenter.Domain.Enums;
 
 namespace Msr.CommandCenter.Infrastructure.Services;
 
-internal sealed record EnterpriseProviderDiscovery(
+public sealed record EnterpriseProviderDiscovery(
     Guid OrganizationId,
     string OrganizationName,
     string OrganizationSlug,
@@ -10,7 +10,7 @@ internal sealed record EnterpriseProviderDiscovery(
     bool AllowLocalPasswordSignIn,
     IReadOnlyCollection<EnterpriseProviderOption> Providers);
 
-internal sealed record EnterpriseProviderOption(
+public sealed record EnterpriseProviderOption(
     Guid IdentityProviderId,
     string Name,
     IdentityProviderType ProviderType,
@@ -24,9 +24,9 @@ internal sealed record EnterpriseProviderOption(
     bool IsPrimary,
     bool IsEnabled);
 
-internal sealed record OidcAuthorizationRequest(string Url, string StateToken);
+public sealed record OidcAuthorizationRequest(string Url, string StateToken);
 
-internal sealed record EnterprisePrincipal(
+public sealed record EnterprisePrincipal(
     Guid OrganizationId,
     Guid IdentityProviderId,
     IdentityProviderType ProviderType,
