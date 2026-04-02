@@ -138,6 +138,16 @@ public record UpsertOrganizationNotificationRouteRequest(
     bool IsActive,
     bool SendDailyDigest);
 
+public record UpsertOrganizationExportDestinationRequest(
+    Guid? ExportDestinationId,
+    Guid IntegrationConnectionId,
+    ExportDestinationType DestinationType,
+    string Name,
+    string DestinationReference,
+    string DestinationPath,
+    bool IsDefault,
+    bool IsActive);
+
 public record TriggerOrganizationProvisioningJobRequest(
     string TriggeredBy,
     string Summary);

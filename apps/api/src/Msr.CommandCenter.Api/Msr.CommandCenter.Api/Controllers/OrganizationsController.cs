@@ -93,4 +93,9 @@ public class OrganizationsController : ControllerBase
     [Authorize(Roles = "OrgAdmin,PlatformAdmin")]
     public Task<OrganizationNotificationRouteDto> UpsertNotificationRoute(Guid organizationId, UpsertOrganizationNotificationRouteRequest request, CancellationToken cancellationToken) =>
         _organizationService.UpsertNotificationRouteAsync(organizationId, request, cancellationToken);
+
+    [HttpPost("{organizationId:guid}/enterprise-settings/export-destinations")]
+    [Authorize(Roles = "OrgAdmin,PlatformAdmin")]
+    public Task<OrganizationExportDestinationDto> UpsertExportDestination(Guid organizationId, UpsertOrganizationExportDestinationRequest request, CancellationToken cancellationToken) =>
+        _organizationService.UpsertExportDestinationAsync(organizationId, request, cancellationToken);
 }

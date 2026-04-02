@@ -6,6 +6,7 @@ import { PageShell } from "@/components/layout/page-shell";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   createDirectoryGroupMappingAction,
+  createExportDestinationAction,
   createNotificationRouteAction,
   createVerifiedDomainAction,
   createIdentityProviderAction,
@@ -13,6 +14,7 @@ import {
   triggerProvisioningJobAction,
   updateDirectoryGroupMappingAction,
   updateEnterpriseAuthSettingsAction,
+  updateExportDestinationAction,
   updateIdentityProviderStateAction,
   updateIntegrationConnectionStateAction,
   updateNotificationRouteAction,
@@ -124,6 +126,188 @@ export default async function OrganizationSettingsPage() {
             </label>
             <div className="lg:col-span-2">
               <Button type="submit">Save enterprise auth policy</Button>
+            </div>
+          </form>
+        </CardBody>
+      </Card>
+      <Card>
+        <CardHeader>
+          <div className="space-y-2">
+            <h2 className="text-lg font-semibold">Cloud export destinations</h2>
+            <p className="text-sm text-muted-foreground">Send team and personal MSR exports to SharePoint, OneDrive, or Google Drive destinations connected through your enterprise integrations.</p>
+          </div>
+        </CardHeader>
+        <CardBody className="space-y-5">
+          {data.enterprise.exportDestinations.length > 0 ? (
+            <div className="space-y-3">
+              {data.enterprise.exportDestinations.map((destination) => {
+                const integration = data.enterprise.integrations.find((item) => item.id === destination.integrationConnectionId);
+
+                return (
+                  <div key={destination.id} className="rounded-[0.8rem] border border-border bg-surface p-4">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="space-y-1">
+                        <p className="font-medium">{destination.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {formatValue(destination.destinationType)} via {integration?.name ?? "Unknown integration"}
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {destination.isDefault ? <Badge variant="accent">Default</Badge> : null}
+                        <Badge variant={destination.isActive ? "success" : "neutral"}>{destination.isActive ? "Active" : "Paused"}</Badge>
+                      </div>
+                    </div>
+                    <p className="mt-3 text-sm text-muted-foreground">Reference: {destination.destinationReference}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">Path: {destination.destinationPath}</p>
+                    {destination.lastValidatedAtUtc ? (
+                      <p className="mt-2 text-xs text-muted-foreground">Last validated {new Date(destination.lastValidatedAtUtc).toLocaleString()}</p>
+                    ) : null}
+                    {destination.lastValidationError ? <p className="mt-2 text-xs text-danger">{destination.lastValidationError}</p> : null}
+                    {destination.lastDeliveryError ? <p className="mt-2 text-xs text-danger">{destination.lastDeliveryError}</p> : null}
+                    <details className="mt-3 rounded-[0.7rem] border border-border bg-surface-2 p-3">
+                      <summary className="cursor-pointer text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                        Edit destination
+                      </summary>
+                      <form action={updateExportDestinationAction} className="mt-3 grid gap-3 lg:grid-cols-2">
+                        <input type="hidden" name="organizationId" value={data.organization.id} />
+                        <input type="hidden" name="exportDestinationId" value={destination.id} />
+                        <input type="hidden" name="isDefault" value={destination.isDefault ? "true" : "false"} />
+                        <input type="hidden" name="isActive" value={destination.isActive ? "true" : "false"} />
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium" htmlFor={`export-integration-${destination.id}`}>
+                            Integration connection
+                          </label>
+                          <select
+                            id={`export-integration-${destination.id}`}
+                            name="integrationConnectionId"
+                            defaultValue={destination.integrationConnectionId}
+                            className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-foreground shadow-sm"
+                          >
+                            {data.enterprise.integrations
+                              .filter((integrationOption) => integrationOption.providerType !== "Slack")
+                              .map((integrationOption) => (
+                                <option key={integrationOption.id} value={integrationOption.id}>
+                                  {integrationOption.name}
+                                </option>
+                              ))}
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium" htmlFor={`export-type-${destination.id}`}>
+                            Destination type
+                          </label>
+                          <select
+                            id={`export-type-${destination.id}`}
+                            name="destinationType"
+                            defaultValue={toExportDestinationTypeValue(destination.destinationType)}
+                            className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-foreground shadow-sm"
+                          >
+                            <option value="1">SharePoint library</option>
+                            <option value="2">OneDrive folder</option>
+                            <option value="3">Google Drive folder</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium" htmlFor={`export-name-${destination.id}`}>
+                            Destination name
+                          </label>
+                          <Input id={`export-name-${destination.id}`} name="name" defaultValue={destination.name} />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium" htmlFor={`export-reference-${destination.id}`}>
+                            Destination reference
+                          </label>
+                          <Input id={`export-reference-${destination.id}`} name="destinationReference" defaultValue={destination.destinationReference} />
+                        </div>
+                        <div className="space-y-2 lg:col-span-2">
+                          <label className="text-xs font-medium" htmlFor={`export-path-${destination.id}`}>
+                            Path / folder
+                          </label>
+                          <Input id={`export-path-${destination.id}`} name="destinationPath" defaultValue={destination.destinationPath} />
+                        </div>
+                        <div className="flex flex-col justify-end gap-2 pb-1">
+                          <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <input type="checkbox" name="isDefault" className="h-4 w-4 rounded border-border" defaultChecked={destination.isDefault} />
+                            Make default destination
+                          </label>
+                          <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <input type="checkbox" name="isActive" className="h-4 w-4 rounded border-border" defaultChecked={destination.isActive} />
+                            Destination active
+                          </label>
+                        </div>
+                        <div className="lg:col-span-2">
+                          <Button type="submit" size="sm">Save destination</Button>
+                        </div>
+                      </form>
+                    </details>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="rounded-[0.7rem] border border-dashed border-border bg-surface p-4 text-sm text-muted-foreground">
+              No SharePoint, OneDrive, or Google Drive destinations configured yet.
+            </div>
+          )}
+          <form action={createExportDestinationAction} className="grid gap-4 rounded-[0.8rem] border border-border bg-surface p-4 lg:grid-cols-2">
+            <input type="hidden" name="organizationId" value={data.organization.id} />
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="export-destination-integration">
+                Integration connection
+              </label>
+              <select id="export-destination-integration" name="integrationConnectionId" className="w-full rounded-xl border border-border bg-surface-2 px-4 py-3 text-sm text-foreground shadow-sm">
+                {data.enterprise.integrations
+                  .filter((integration) => integration.providerType !== "Slack")
+                  .map((integration) => (
+                    <option key={integration.id} value={integration.id}>
+                      {integration.name}
+                    </option>
+                  ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="export-destination-type">
+                Destination type
+              </label>
+              <select id="export-destination-type" name="destinationType" defaultValue="1" className="w-full rounded-xl border border-border bg-surface-2 px-4 py-3 text-sm text-foreground shadow-sm">
+                <option value="1">SharePoint library</option>
+                <option value="2">OneDrive folder</option>
+                <option value="3">Google Drive folder</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="export-destination-name">
+                Destination name
+              </label>
+              <Input id="export-destination-name" name="name" placeholder="Executive reports library" />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="export-destination-reference">
+                Destination reference
+              </label>
+              <Input id="export-destination-reference" name="destinationReference" placeholder="site-id, drive-id, folder-id" />
+            </div>
+            <div className="space-y-2 lg:col-span-2">
+              <label className="text-sm font-medium" htmlFor="export-destination-path">
+                Path / folder
+              </label>
+              <Input id="export-destination-path" name="destinationPath" placeholder="/Shared Documents/MSRs/2026" />
+            </div>
+            <label className="flex items-center gap-2 text-sm text-muted-foreground">
+              <input type="checkbox" name="isDefault" className="h-4 w-4 rounded border-border" />
+              Make default destination
+            </label>
+            <label className="flex items-center gap-2 text-sm text-muted-foreground">
+              <input type="checkbox" name="isActive" className="h-4 w-4 rounded border-border" defaultChecked />
+              Activate destination
+            </label>
+            <div className="lg:col-span-2">
+              <Button type="submit" disabled={data.enterprise.integrations.filter((integration) => integration.providerType !== "Slack").length === 0}>
+                Add export destination
+              </Button>
+              {data.enterprise.integrations.filter((integration) => integration.providerType !== "Slack").length === 0 ? (
+                <p className="mt-2 text-sm text-muted-foreground">Add a Microsoft 365 or Google Workspace integration before creating export destinations.</p>
+              ) : null}
             </div>
           </form>
         </CardBody>
@@ -1370,6 +1554,17 @@ function toNotificationTargetTypeValue(value: string) {
   switch (value) {
     case "GoogleChatSpace":
       return "2";
+    default:
+      return "1";
+  }
+}
+
+function toExportDestinationTypeValue(value: string) {
+  switch (value) {
+    case "OneDriveFolder":
+      return "2";
+    case "GoogleDriveFolder":
+      return "3";
     default:
       return "1";
   }

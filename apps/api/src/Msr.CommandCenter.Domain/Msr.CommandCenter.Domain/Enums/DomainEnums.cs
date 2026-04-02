@@ -148,3 +148,10 @@ public enum ExternalNotificationTargetType
     TeamsChannel = 1,
     GoogleChatSpace = 2
 }
+
+public enum ExportDestinationType
+{
+    SharePointLibrary = 1,
+    OneDriveFolder = 2,
+    GoogleDriveFolder = 3
+}

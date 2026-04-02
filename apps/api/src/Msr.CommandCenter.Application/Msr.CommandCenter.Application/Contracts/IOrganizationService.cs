@@ -19,4 +19,5 @@ public interface IOrganizationService
     Task<OrganizationProvisioningJobDto> TriggerProvisioningJobAsync(Guid organizationId, TriggerOrganizationProvisioningJobRequest request, CancellationToken cancellationToken);
     Task<OrganizationDirectoryGroupMappingDto> UpsertDirectoryGroupMappingAsync(Guid organizationId, UpsertOrganizationDirectoryGroupMappingRequest request, CancellationToken cancellationToken);
     Task<OrganizationNotificationRouteDto> UpsertNotificationRouteAsync(Guid organizationId, UpsertOrganizationNotificationRouteRequest request, CancellationToken cancellationToken);
+    Task<OrganizationExportDestinationDto> UpsertExportDestinationAsync(Guid organizationId, UpsertOrganizationExportDestinationRequest request, CancellationToken cancellationToken);
 }

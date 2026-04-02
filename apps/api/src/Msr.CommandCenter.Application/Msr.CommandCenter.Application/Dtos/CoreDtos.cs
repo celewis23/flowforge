@@ -252,6 +252,21 @@ public record OrganizationNotificationRouteDto(
     DateTime? LastDeliveredAtUtc,
     string LastDeliveryError);
 
+public record OrganizationExportDestinationDto(
+    Guid Id,
+    Guid OrganizationId,
+    Guid IntegrationConnectionId,
+    string DestinationType,
+    string Name,
+    string DestinationReference,
+    string DestinationPath,
+    bool IsDefault,
+    bool IsActive,
+    DateTime? LastValidatedAtUtc,
+    string LastValidationError,
+    DateTime? LastDeliveredAtUtc,
+    string LastDeliveryError);
+
 public record OrganizationEnterpriseSettingsDto(
     OrganizationAuthenticationSettingsDto Authentication,
     IReadOnlyCollection<OrganizationIdentityProviderDto> IdentityProviders,
@@ -260,7 +275,8 @@ public record OrganizationEnterpriseSettingsDto(
     OrganizationProvisioningSettingsDto Provisioning,
     IReadOnlyCollection<OrganizationProvisioningJobDto> ProvisioningJobs,
     IReadOnlyCollection<OrganizationDirectoryGroupMappingDto> DirectoryGroupMappings,
-    IReadOnlyCollection<OrganizationNotificationRouteDto> NotificationRoutes);
+    IReadOnlyCollection<OrganizationNotificationRouteDto> NotificationRoutes,
+    IReadOnlyCollection<OrganizationExportDestinationDto> ExportDestinations);
 
 public record EnterpriseIdentityProviderOptionDto(
     Guid IdentityProviderId,

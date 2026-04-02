@@ -297,3 +297,37 @@ export async function updateNotificationRouteAction(formData: FormData) {
 
   revalidatePath("/organization-settings");
 }
+
+export async function createExportDestinationAction(formData: FormData) {
+  const organizationId = String(formData.get("organizationId") ?? "");
+
+  await apiMutation(`/api/organizations/${organizationId}/enterprise-settings/export-destinations`, "POST", {
+    exportDestinationId: null,
+    integrationConnectionId: String(formData.get("integrationConnectionId") ?? ""),
+    destinationType: Number(formData.get("destinationType") ?? 1),
+    name: String(formData.get("name") ?? ""),
+    destinationReference: String(formData.get("destinationReference") ?? ""),
+    destinationPath: String(formData.get("destinationPath") ?? ""),
+    isDefault: formData.get("isDefault") === "on",
+    isActive: formData.get("isActive") === "on",
+  });
+
+  revalidatePath("/organization-settings");
+}
+
+export async function updateExportDestinationAction(formData: FormData) {
+  const organizationId = String(formData.get("organizationId") ?? "");
+
+  await apiMutation(`/api/organizations/${organizationId}/enterprise-settings/export-destinations`, "POST", {
+    exportDestinationId: String(formData.get("exportDestinationId") ?? ""),
+    integrationConnectionId: String(formData.get("integrationConnectionId") ?? ""),
+    destinationType: Number(formData.get("destinationType") ?? 1),
+    name: String(formData.get("name") ?? ""),
+    destinationReference: String(formData.get("destinationReference") ?? ""),
+    destinationPath: String(formData.get("destinationPath") ?? ""),
+    isDefault: formData.get("isDefault") === "true" || formData.get("isDefault") === "on",
+    isActive: formData.get("isActive") === "true" || formData.get("isActive") === "on",
+  });
+
+  revalidatePath("/organization-settings");
+}

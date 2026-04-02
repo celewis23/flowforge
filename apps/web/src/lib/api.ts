@@ -158,6 +158,21 @@ type OrganizationNotificationRouteDto = {
   lastDeliveredAtUtc?: string | null;
   lastDeliveryError: string;
 };
+type OrganizationExportDestinationDto = {
+  id: string;
+  organizationId: string;
+  integrationConnectionId: string;
+  destinationType: string;
+  name: string;
+  destinationReference: string;
+  destinationPath: string;
+  isDefault: boolean;
+  isActive: boolean;
+  lastValidatedAtUtc?: string | null;
+  lastValidationError: string;
+  lastDeliveredAtUtc?: string | null;
+  lastDeliveryError: string;
+};
 type OrganizationEnterpriseSettingsDto = {
   authentication: OrganizationAuthenticationSettingsDto;
   identityProviders: OrganizationIdentityProviderDto[];
@@ -167,6 +182,7 @@ type OrganizationEnterpriseSettingsDto = {
   provisioningJobs: OrganizationProvisioningJobDto[];
   directoryGroupMappings: OrganizationDirectoryGroupMappingDto[];
   notificationRoutes: OrganizationNotificationRouteDto[];
+  exportDestinations: OrganizationExportDestinationDto[];
 };
 
 async function apiFetch<T>(path: string): Promise<T> {
@@ -832,6 +848,7 @@ async function getEnterpriseSettingsData(organizationId: string) {
       provisioningJobs: [],
       directoryGroupMappings: [],
       notificationRoutes: [],
+      exportDestinations: [],
     } satisfies OrganizationEnterpriseSettingsDto;
   }
 }

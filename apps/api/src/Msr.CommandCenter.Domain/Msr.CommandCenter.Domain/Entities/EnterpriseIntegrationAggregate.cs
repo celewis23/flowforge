@@ -127,6 +127,23 @@ public class OrganizationNotificationRoute : TenantEntity
     public OrganizationIntegrationConnection? IntegrationConnection { get; set; }
 }
 
+public class OrganizationExportDestination : TenantEntity
+{
+    public Guid IntegrationConnectionId { get; set; }
+    public ExportDestinationType DestinationType { get; set; } = ExportDestinationType.SharePointLibrary;
+    public string Name { get; set; } = string.Empty;
+    public string DestinationReference { get; set; } = string.Empty;
+    public string DestinationPath { get; set; } = string.Empty;
+    public bool IsDefault { get; set; }
+    public bool IsActive { get; set; } = true;
+    public DateTime? LastValidatedAtUtc { get; set; }
+    public string LastValidationError { get; set; } = string.Empty;
+    public DateTime? LastDeliveredAtUtc { get; set; }
+    public string LastDeliveryError { get; set; } = string.Empty;
+    public Organization? Organization { get; set; }
+    public OrganizationIntegrationConnection? IntegrationConnection { get; set; }
+}
+
 public class ExternalIdentityLink : TenantEntity
 {
     public Guid UserId { get; set; }

@@ -202,6 +202,57 @@ public class OrganizationServiceTests
         Assert.True(result.IsActive);
     }
 
+    [Fact]
+    public async Task UpsertExportDestinationAsync_CreatesCloudDocumentTarget()
+    {
+        await using var dbContext = CreateDbContext();
+        var organizationId = Guid.NewGuid();
+        var integrationId = Guid.NewGuid();
+
+        dbContext.Organizations.Add(new Organization
+        {
+            Id = organizationId,
+            Name = "FlowForge Public Sector",
+            Slug = "flowforge-public-sector",
+            Domain = "public.example.com",
+            DefaultCadence = "Monthly"
+        });
+
+        dbContext.OrganizationIntegrationConnections.Add(new OrganizationIntegrationConnection
+        {
+            Id = integrationId,
+            OrganizationId = organizationId,
+            Name = "Civic Microsoft 365",
+            ProviderType = IntegrationProviderType.Microsoft365,
+            ClientId = "m365-client",
+            ClientSecretReference = "m365-secret",
+            TenantIdentifier = "tenant-id",
+            Status = IntegrationConnectionStatus.Active
+        });
+
+        await dbContext.SaveChangesAsync();
+
+        var service = new OrganizationService(dbContext);
+        var result = await service.UpsertExportDestinationAsync(
+            organizationId,
+            new UpsertOrganizationExportDestinationRequest(
+                null,
+                integrationId,
+                ExportDestinationType.SharePointLibrary,
+                "Leadership Reports",
+                "site-id:library-id",
+                "/Shared Documents/MSRs",
+                true,
+                true),
+            CancellationToken.None);
+
+        Assert.Equal(integrationId, result.IntegrationConnectionId);
+        Assert.Equal("SharePointLibrary", result.DestinationType);
+        Assert.Equal("Leadership Reports", result.Name);
+        Assert.True(result.IsDefault);
+        Assert.True(result.IsActive);
+    }
+
     private static MsrCommandCenterDbContext CreateDbContext()
     {
         var options = new DbContextOptionsBuilder<MsrCommandCenterDbContext>()

@@ -113,6 +113,12 @@ public class OrganizationService : IOrganizationService
             .ThenBy(x => x.NotificationType)
             .ThenBy(x => x.DestinationLabel)
             .ToListAsync(cancellationToken);
+        var exportDestinations = await _dbContext.OrganizationExportDestinations
+            .Where(x => x.OrganizationId == organizationId)
+            .OrderByDescending(x => x.IsDefault)
+            .ThenByDescending(x => x.IsActive)
+            .ThenBy(x => x.Name)
+            .ToListAsync(cancellationToken);
 
         return new OrganizationEnterpriseSettingsDto(
             MapAuthenticationSettings(auth),
@@ -122,7 +128,8 @@ public class OrganizationService : IOrganizationService
             MapProvisioningSettings(provisioning),
             provisioningJobs.Select(MapProvisioningJob).ToList(),
             directoryGroupMappings.Select(MapDirectoryGroupMapping).ToList(),
-            notificationRoutes.Select(MapNotificationRoute).ToList());
+            notificationRoutes.Select(MapNotificationRoute).ToList(),
+            exportDestinations.Select(MapExportDestination).ToList());
     }
 
     public async Task<OrganizationAuthenticationSettingsDto> UpdateAuthenticationSettingsAsync(Guid organizationId, UpdateOrganizationAuthenticationSettingsRequest request, CancellationToken cancellationToken)
@@ -505,6 +512,95 @@ public class OrganizationService : IOrganizationService
         return MapNotificationRoute(route);
     }
 
+    public async Task<OrganizationExportDestinationDto> UpsertExportDestinationAsync(Guid organizationId, UpsertOrganizationExportDestinationRequest request, CancellationToken cancellationToken)
+    {
+        var integration = await _dbContext.OrganizationIntegrationConnections
+            .Where(x => x.OrganizationId == organizationId && x.Id == request.IntegrationConnectionId)
+            .SingleOrDefaultAsync(cancellationToken)
+            ?? throw new InvalidOperationException("The selected integration connection does not belong to this organization.");
+
+        if (string.IsNullOrWhiteSpace(request.Name))
+        {
+            throw new InvalidOperationException("A destination name is required.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.DestinationReference))
+        {
+            throw new InvalidOperationException("A destination reference is required.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.DestinationPath))
+        {
+            throw new InvalidOperationException("A destination path is required.");
+        }
+
+        if (integration.ProviderType == IntegrationProviderType.Microsoft365 &&
+            request.DestinationType is not (ExportDestinationType.SharePointLibrary or ExportDestinationType.OneDriveFolder))
+        {
+            throw new InvalidOperationException("Microsoft 365 destinations must target SharePoint or OneDrive.");
+        }
+
+        if (integration.ProviderType == IntegrationProviderType.GoogleWorkspace &&
+            request.DestinationType != ExportDestinationType.GoogleDriveFolder)
+        {
+            throw new InvalidOperationException("Google Workspace destinations must target Google Drive.");
+        }
+
+        if (integration.ProviderType == IntegrationProviderType.Slack)
+        {
+            throw new InvalidOperationException("Slack integrations cannot be used for document export destinations.");
+        }
+
+        OrganizationExportDestination destination;
+        if (request.ExportDestinationId.HasValue)
+        {
+            destination = await _dbContext.OrganizationExportDestinations
+                .Where(x => x.OrganizationId == organizationId && x.Id == request.ExportDestinationId.Value)
+                .SingleAsync(cancellationToken);
+        }
+        else
+        {
+            destination = new OrganizationExportDestination
+            {
+                OrganizationId = organizationId
+            };
+            _dbContext.OrganizationExportDestinations.Add(destination);
+        }
+
+        destination.IntegrationConnectionId = integration.Id;
+        destination.DestinationType = request.DestinationType;
+        destination.Name = request.Name.Trim();
+        destination.DestinationReference = request.DestinationReference.Trim();
+        destination.DestinationPath = request.DestinationPath.Trim();
+        destination.IsDefault = request.IsDefault;
+        destination.IsActive = request.IsActive;
+        destination.LastValidationError = string.Empty;
+        destination.LastValidatedAtUtc = DateTime.UtcNow;
+
+        if (request.IsDefault)
+        {
+            var others = await _dbContext.OrganizationExportDestinations
+                .Where(x => x.OrganizationId == organizationId && x.Id != destination.Id)
+                .ToListAsync(cancellationToken);
+
+            foreach (var other in others)
+            {
+                other.IsDefault = false;
+            }
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        await WriteEnterpriseAuditAsync(
+            organizationId,
+            "ExportDestinationUpserted",
+            "OrganizationExportDestination",
+            destination.Id.ToString(),
+            $"Configured {destination.DestinationType} export destination '{destination.Name}' via {integration.Name}.",
+            cancellationToken);
+
+        return MapExportDestination(destination);
+    }
+
     private async Task<OrganizationAuthenticationSettings> EnsureAuthenticationSettingsAsync(Guid organizationId, CancellationToken cancellationToken)
     {
         var settings = await _dbContext.OrganizationAuthenticationSettings
@@ -689,6 +785,22 @@ public class OrganizationService : IOrganizationService
             route.SendDailyDigest,
             route.LastDeliveredAtUtc,
             route.LastDeliveryError);
+
+    private static OrganizationExportDestinationDto MapExportDestination(OrganizationExportDestination destination) =>
+        new(
+            destination.Id,
+            destination.OrganizationId,
+            destination.IntegrationConnectionId,
+            destination.DestinationType.ToString(),
+            destination.Name,
+            destination.DestinationReference,
+            destination.DestinationPath,
+            destination.IsDefault,
+            destination.IsActive,
+            destination.LastValidatedAtUtc,
+            destination.LastValidationError,
+            destination.LastDeliveredAtUtc,
+            destination.LastDeliveryError);
 
     private static string GenerateChallengeToken() =>
         $"flowforge-verification={Convert.ToHexString(Guid.NewGuid().ToByteArray()).ToLowerInvariant()}";
