@@ -21,6 +21,26 @@ internal sealed class EnterpriseOidcService : IEnterpriseOidcService
         providerType.Equals(nameof(IdentityProviderType.MicrosoftEntraId), StringComparison.OrdinalIgnoreCase) ||
         providerType.Equals(nameof(IdentityProviderType.GoogleWorkspace), StringComparison.OrdinalIgnoreCase);
 
+    public async Task ValidateProviderAsync(EnterpriseProviderOption provider, CancellationToken cancellationToken)
+    {
+        var metadata = await GetConfigurationAsync(provider, cancellationToken);
+
+        if (string.IsNullOrWhiteSpace(metadata.AuthorizationEndpoint))
+        {
+            throw new InvalidOperationException("OIDC metadata did not include an authorization endpoint.");
+        }
+
+        if (string.IsNullOrWhiteSpace(metadata.TokenEndpoint))
+        {
+            throw new InvalidOperationException("OIDC metadata did not include a token endpoint.");
+        }
+
+        if (metadata.SigningKeys.Count == 0)
+        {
+            throw new InvalidOperationException("OIDC metadata did not include signing keys.");
+        }
+    }
+
     public async Task<OidcAuthorizationRequest> BuildAuthorizationUrlAsync(EnterpriseProviderOption provider, EnterpriseAuthSession session, CancellationToken cancellationToken)
     {
         var metadata = await GetConfigurationAsync(provider, cancellationToken);

@@ -10,10 +10,12 @@ namespace Msr.CommandCenter.Infrastructure.Services;
 public class OrganizationService : IOrganizationService
 {
     private readonly MsrCommandCenterDbContext _dbContext;
+    private readonly IEnterpriseOidcService? _enterpriseOidcService;
 
-    public OrganizationService(MsrCommandCenterDbContext dbContext)
+    public OrganizationService(MsrCommandCenterDbContext dbContext, IEnterpriseOidcService? enterpriseOidcService = null)
     {
         _dbContext = dbContext;
+        _enterpriseOidcService = enterpriseOidcService;
     }
 
     public async Task<IReadOnlyCollection<OrganizationSummaryDto>> GetOrganizationsAsync(CancellationToken cancellationToken)
@@ -198,7 +200,7 @@ public class OrganizationService : IOrganizationService
             .ToListAsync(cancellationToken);
 
         provider.LastValidatedAtUtc = DateTime.UtcNow;
-        provider.LastValidationError = ValidateProviderConfiguration(provider, verifiedDomains);
+        provider.LastValidationError = await ValidateProviderConfigurationAsync(provider, verifiedDomains, cancellationToken);
 
         await _dbContext.SaveChangesAsync(cancellationToken);
         await WriteEnterpriseAuditAsync(
@@ -532,7 +534,7 @@ public class OrganizationService : IOrganizationService
         return string.IsNullOrWhiteSpace(provider.LastValidationError) ? "Valid" : "Invalid";
     }
 
-    private static string ValidateProviderConfiguration(OrganizationIdentityProvider provider, IReadOnlyCollection<string> verifiedDomains)
+    private async Task<string> ValidateProviderConfigurationAsync(OrganizationIdentityProvider provider, IReadOnlyCollection<string> verifiedDomains, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(provider.Name))
         {
@@ -544,7 +546,7 @@ public class OrganizationService : IOrganizationService
             return "Client ID is required.";
         }
 
-        return provider.ProviderType switch
+        var configError = provider.ProviderType switch
         {
             IdentityProviderType.MicrosoftEntraId when string.IsNullOrWhiteSpace(provider.Authority) && string.IsNullOrWhiteSpace(provider.TenantIdentifier)
                 => "Microsoft Entra ID providers require an authority URL or tenant identifier.",
@@ -554,5 +556,40 @@ public class OrganizationService : IOrganizationService
                 => "SAML providers require a metadata URL.",
             _ => string.Empty
         };
+
+        if (!string.IsNullOrWhiteSpace(configError))
+        {
+            return configError;
+        }
+
+        if (_enterpriseOidcService is null || !_enterpriseOidcService.SupportsProvider(provider.ProviderType.ToString()))
+        {
+            return string.Empty;
+        }
+
+        try
+        {
+            await _enterpriseOidcService.ValidateProviderAsync(
+                new EnterpriseProviderOption(
+                    provider.Id,
+                    provider.Name,
+                    provider.ProviderType,
+                    provider.ClientId,
+                    provider.ClientSecretReference,
+                    provider.Authority,
+                    provider.MetadataUrl,
+                    provider.TenantIdentifier,
+                    SplitCsv(provider.ScopesCsv),
+                    SplitCsv(provider.DomainHintsCsv),
+                    provider.IsPrimary,
+                    provider.IsEnabled),
+                cancellationToken);
+
+            return string.Empty;
+        }
+        catch (Exception ex)
+        {
+            return $"Live metadata validation failed: {ex.Message}";
+        }
     }
 }
