@@ -202,3 +202,30 @@ export async function verifyDomainStateAction(formData: FormData) {
 
   revalidatePath("/organization-settings");
 }
+
+export async function updateProvisioningSettingsAction(formData: FormData) {
+  const organizationId = String(formData.get("organizationId") ?? "");
+
+  await apiMutation(`/api/organizations/${organizationId}/enterprise-settings/provisioning`, "PUT", {
+    syncMode: Number(formData.get("syncMode") ?? 1),
+    identityProviderId: formData.get("identityProviderId") ? String(formData.get("identityProviderId")) : null,
+    autoProvisionNewUsers: formData.get("autoProvisionNewUsers") === "on",
+    autoDeactivateMissingUsers: formData.get("autoDeactivateMissingUsers") === "on",
+    groupMappingStrategy: String(formData.get("groupMappingStrategy") ?? "Manual"),
+    scimBaseUrl: String(formData.get("scimBaseUrl") ?? ""),
+    scimSecretReference: String(formData.get("scimSecretReference") ?? ""),
+  });
+
+  revalidatePath("/organization-settings");
+}
+
+export async function triggerProvisioningJobAction(formData: FormData) {
+  const organizationId = String(formData.get("organizationId") ?? "");
+
+  await apiMutation(`/api/organizations/${organizationId}/enterprise-settings/provisioning/jobs`, "POST", {
+    triggeredBy: String(formData.get("triggeredBy") ?? "OrgAdmin"),
+    summary: String(formData.get("summary") ?? "Provisioning sync requested from admin console."),
+  });
+
+  revalidatePath("/organization-settings");
+}

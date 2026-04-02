@@ -103,11 +103,42 @@ type OrganizationVerifiedDomainDto = {
   lastCheckedAtUtc?: string | null;
   failureReason: string;
 };
+type OrganizationProvisioningSettingsDto = {
+  id: string;
+  organizationId: string;
+  syncMode: string;
+  identityProviderId?: string | null;
+  autoProvisionNewUsers: boolean;
+  autoDeactivateMissingUsers: boolean;
+  groupMappingStrategy: string;
+  scimBaseUrl: string;
+  lastSyncAtUtc?: string | null;
+  lastSyncStatus: string;
+  lastSyncError: string;
+};
+type OrganizationProvisioningJobDto = {
+  id: string;
+  organizationId: string;
+  identityProviderId?: string | null;
+  syncMode: string;
+  status: string;
+  triggeredBy: string;
+  summary: string;
+  usersProcessed: number;
+  usersCreated: number;
+  usersUpdated: number;
+  usersDeactivated: number;
+  errorDetails: string;
+  startedAtUtc: string;
+  completedAtUtc?: string | null;
+};
 type OrganizationEnterpriseSettingsDto = {
   authentication: OrganizationAuthenticationSettingsDto;
   identityProviders: OrganizationIdentityProviderDto[];
   integrations: OrganizationIntegrationConnectionDto[];
   verifiedDomains: OrganizationVerifiedDomainDto[];
+  provisioning: OrganizationProvisioningSettingsDto;
+  provisioningJobs: OrganizationProvisioningJobDto[];
 };
 
 async function apiFetch<T>(path: string): Promise<T> {
@@ -757,6 +788,20 @@ async function getEnterpriseSettingsData(organizationId: string) {
       identityProviders: [],
       integrations: [],
       verifiedDomains: [],
+      provisioning: {
+        id: "enterprise-provisioning-fallback",
+        organizationId,
+        syncMode: "Manual",
+        identityProviderId: null,
+        autoProvisionNewUsers: false,
+        autoDeactivateMissingUsers: false,
+        groupMappingStrategy: "Manual",
+        scimBaseUrl: "",
+        lastSyncAtUtc: null,
+        lastSyncStatus: "NotStarted",
+        lastSyncError: "",
+      },
+      provisioningJobs: [],
     } satisfies OrganizationEnterpriseSettingsDto;
   }
 }

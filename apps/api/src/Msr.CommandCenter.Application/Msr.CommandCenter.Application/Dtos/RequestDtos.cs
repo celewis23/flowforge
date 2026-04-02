@@ -109,6 +109,19 @@ public record VerifyOrganizationDomainRequest(
     bool Verified,
     string FailureReason);
 
+public record UpdateOrganizationProvisioningSettingsRequest(
+    ProvisioningSyncMode SyncMode,
+    Guid? IdentityProviderId,
+    bool AutoProvisionNewUsers,
+    bool AutoDeactivateMissingUsers,
+    string GroupMappingStrategy,
+    string ScimBaseUrl,
+    string ScimSecretReference);
+
+public record TriggerOrganizationProvisioningJobRequest(
+    string TriggeredBy,
+    string Summary);
+
 public record EnterpriseLoginDiscoveryRequest(string Email);
 
 public record EnterpriseLoginInitiateRequest(string Email, Guid IdentityProviderId, string? ReturnUrl);

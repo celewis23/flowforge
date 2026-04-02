@@ -64,6 +64,38 @@ public class OrganizationVerifiedDomain : TenantEntity
     public Organization? Organization { get; set; }
 }
 
+public class OrganizationProvisioningSettings : TenantEntity
+{
+    public ProvisioningSyncMode SyncMode { get; set; } = ProvisioningSyncMode.Manual;
+    public Guid? IdentityProviderId { get; set; }
+    public bool AutoProvisionNewUsers { get; set; }
+    public bool AutoDeactivateMissingUsers { get; set; }
+    public string GroupMappingStrategy { get; set; } = "Manual";
+    public string ScimBaseUrl { get; set; } = string.Empty;
+    public string ScimSecretReference { get; set; } = string.Empty;
+    public DateTime? LastSyncAtUtc { get; set; }
+    public string LastSyncStatus { get; set; } = "NotStarted";
+    public string LastSyncError { get; set; } = string.Empty;
+    public Organization? Organization { get; set; }
+}
+
+public class OrganizationProvisioningJob : TenantEntity
+{
+    public Guid? IdentityProviderId { get; set; }
+    public ProvisioningSyncMode SyncMode { get; set; } = ProvisioningSyncMode.Manual;
+    public ProvisioningJobStatus Status { get; set; } = ProvisioningJobStatus.Pending;
+    public string TriggeredBy { get; set; } = "System";
+    public string Summary { get; set; } = string.Empty;
+    public int UsersProcessed { get; set; }
+    public int UsersCreated { get; set; }
+    public int UsersUpdated { get; set; }
+    public int UsersDeactivated { get; set; }
+    public string ErrorDetails { get; set; } = string.Empty;
+    public DateTime StartedAtUtc { get; set; } = DateTime.UtcNow;
+    public DateTime? CompletedAtUtc { get; set; }
+    public Organization? Organization { get; set; }
+}
+
 public class ExternalIdentityLink : TenantEntity
 {
     public Guid UserId { get; set; }

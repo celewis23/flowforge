@@ -128,3 +128,17 @@ public enum DomainVerificationStatus
     Failed = 3,
     Revoked = 4
 }
+
+public enum ProvisioningSyncMode
+{
+    Manual = 1,
+    JustInTime = 2,
+    Scim = 3
+}
+
+public enum ProvisioningJobStatus
+{
+    Pending = 1,
+    Succeeded = 2,
+    Failed = 3
+}

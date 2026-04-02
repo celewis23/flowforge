@@ -73,4 +73,14 @@ public class OrganizationsController : ControllerBase
     [Authorize(Roles = "OrgAdmin,PlatformAdmin")]
     public Task<OrganizationVerifiedDomainDto> VerifyDomain(Guid organizationId, VerifyOrganizationDomainRequest request, CancellationToken cancellationToken) =>
         _organizationService.VerifyDomainAsync(organizationId, request, cancellationToken);
+
+    [HttpPut("{organizationId:guid}/enterprise-settings/provisioning")]
+    [Authorize(Roles = "OrgAdmin,PlatformAdmin")]
+    public Task<OrganizationProvisioningSettingsDto> UpdateProvisioning(Guid organizationId, UpdateOrganizationProvisioningSettingsRequest request, CancellationToken cancellationToken) =>
+        _organizationService.UpdateProvisioningSettingsAsync(organizationId, request, cancellationToken);
+
+    [HttpPost("{organizationId:guid}/enterprise-settings/provisioning/jobs")]
+    [Authorize(Roles = "OrgAdmin,PlatformAdmin")]
+    public Task<OrganizationProvisioningJobDto> TriggerProvisioning(Guid organizationId, TriggerOrganizationProvisioningJobRequest request, CancellationToken cancellationToken) =>
+        _organizationService.TriggerProvisioningJobAsync(organizationId, request, cancellationToken);
 }

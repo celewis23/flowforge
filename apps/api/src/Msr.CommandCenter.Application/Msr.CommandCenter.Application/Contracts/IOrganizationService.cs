@@ -15,4 +15,6 @@ public interface IOrganizationService
     Task<OrganizationIntegrationConnectionDto> UpsertIntegrationConnectionAsync(Guid organizationId, UpsertOrganizationIntegrationConnectionRequest request, CancellationToken cancellationToken);
     Task<OrganizationVerifiedDomainDto> UpsertVerifiedDomainAsync(Guid organizationId, UpsertOrganizationVerifiedDomainRequest request, CancellationToken cancellationToken);
     Task<OrganizationVerifiedDomainDto> VerifyDomainAsync(Guid organizationId, VerifyOrganizationDomainRequest request, CancellationToken cancellationToken);
+    Task<OrganizationProvisioningSettingsDto> UpdateProvisioningSettingsAsync(Guid organizationId, UpdateOrganizationProvisioningSettingsRequest request, CancellationToken cancellationToken);
+    Task<OrganizationProvisioningJobDto> TriggerProvisioningJobAsync(Guid organizationId, TriggerOrganizationProvisioningJobRequest request, CancellationToken cancellationToken);
 }

@@ -47,6 +47,48 @@ public class OrganizationServiceTests
         Assert.NotNull(result.LastValidatedAtUtc);
     }
 
+    [Fact]
+    public async Task TriggerProvisioningJobAsync_CreatesLifecycleJobAndUpdatesProvisioningStatus()
+    {
+        await using var dbContext = CreateDbContext();
+        var organizationId = Guid.NewGuid();
+
+        dbContext.Organizations.Add(new Organization
+        {
+            Id = organizationId,
+            Name = "FlowForge Enterprise",
+            Slug = "flowforge-enterprise",
+            Domain = "enterprise.example.com",
+            DefaultCadence = "Monthly"
+        });
+
+        dbContext.OrganizationProvisioningSettings.Add(new OrganizationProvisioningSettings
+        {
+            OrganizationId = organizationId,
+            SyncMode = ProvisioningSyncMode.Scim,
+            AutoProvisionNewUsers = true,
+            AutoDeactivateMissingUsers = true,
+            GroupMappingStrategy = "IdpGroup"
+        });
+
+        await dbContext.SaveChangesAsync();
+
+        var service = new OrganizationService(dbContext);
+        var result = await service.TriggerProvisioningJobAsync(
+            organizationId,
+            new TriggerOrganizationProvisioningJobRequest("OrgAdmin", "SCIM sync kicked off from admin console."),
+            CancellationToken.None);
+
+        Assert.Equal("Pending", result.Status);
+        Assert.Equal("Scim", result.SyncMode);
+        Assert.Equal("OrgAdmin", result.TriggeredBy);
+        Assert.True(result.StartedAtUtc > DateTime.MinValue);
+
+        var settings = await dbContext.OrganizationProvisioningSettings.SingleAsync(x => x.OrganizationId == organizationId);
+        Assert.Equal("Pending", settings.LastSyncStatus);
+        Assert.NotNull(settings.LastSyncAtUtc);
+    }
+
     private static MsrCommandCenterDbContext CreateDbContext()
     {
         var options = new DbContextOptionsBuilder<MsrCommandCenterDbContext>()

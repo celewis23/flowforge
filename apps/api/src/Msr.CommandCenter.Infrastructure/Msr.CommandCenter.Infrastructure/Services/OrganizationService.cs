@@ -94,12 +94,20 @@ public class OrganizationService : IOrganizationService
             .Where(x => x.OrganizationId == organizationId)
             .OrderBy(x => x.Domain)
             .ToListAsync(cancellationToken);
+        var provisioning = await EnsureProvisioningSettingsAsync(organizationId, cancellationToken);
+        var provisioningJobs = await _dbContext.OrganizationProvisioningJobs
+            .Where(x => x.OrganizationId == organizationId)
+            .OrderByDescending(x => x.StartedAtUtc)
+            .Take(10)
+            .ToListAsync(cancellationToken);
 
         return new OrganizationEnterpriseSettingsDto(
             MapAuthenticationSettings(auth),
             identityProviders.Select(MapIdentityProvider).ToList(),
             integrations.Select(MapIntegrationConnection).ToList(),
-            verifiedDomains.Select(MapVerifiedDomain).ToList());
+            verifiedDomains.Select(MapVerifiedDomain).ToList(),
+            MapProvisioningSettings(provisioning),
+            provisioningJobs.Select(MapProvisioningJob).ToList());
     }
 
     public async Task<OrganizationAuthenticationSettingsDto> UpdateAuthenticationSettingsAsync(Guid organizationId, UpdateOrganizationAuthenticationSettingsRequest request, CancellationToken cancellationToken)
@@ -305,6 +313,55 @@ public class OrganizationService : IOrganizationService
         return MapVerifiedDomain(domain);
     }
 
+    public async Task<OrganizationProvisioningSettingsDto> UpdateProvisioningSettingsAsync(Guid organizationId, UpdateOrganizationProvisioningSettingsRequest request, CancellationToken cancellationToken)
+    {
+        var settings = await EnsureProvisioningSettingsAsync(organizationId, cancellationToken);
+        settings.SyncMode = request.SyncMode;
+        settings.IdentityProviderId = request.IdentityProviderId;
+        settings.AutoProvisionNewUsers = request.AutoProvisionNewUsers;
+        settings.AutoDeactivateMissingUsers = request.AutoDeactivateMissingUsers;
+        settings.GroupMappingStrategy = string.IsNullOrWhiteSpace(request.GroupMappingStrategy) ? "Manual" : request.GroupMappingStrategy.Trim();
+        settings.ScimBaseUrl = request.ScimBaseUrl.Trim();
+        settings.ScimSecretReference = request.ScimSecretReference.Trim();
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        await WriteEnterpriseAuditAsync(organizationId, "ProvisioningSettingsUpdated", "OrganizationProvisioningSettings", settings.Id.ToString(), "Provisioning settings updated.", cancellationToken);
+        return MapProvisioningSettings(settings);
+    }
+
+    public async Task<OrganizationProvisioningJobDto> TriggerProvisioningJobAsync(Guid organizationId, TriggerOrganizationProvisioningJobRequest request, CancellationToken cancellationToken)
+    {
+        var settings = await EnsureProvisioningSettingsAsync(organizationId, cancellationToken);
+        var job = new OrganizationProvisioningJob
+        {
+            OrganizationId = organizationId,
+            IdentityProviderId = settings.IdentityProviderId,
+            SyncMode = settings.SyncMode,
+            Status = settings.SyncMode == ProvisioningSyncMode.Manual ? ProvisioningJobStatus.Succeeded : ProvisioningJobStatus.Pending,
+            TriggeredBy = string.IsNullOrWhiteSpace(request.TriggeredBy) ? "OrgAdmin" : request.TriggeredBy.Trim(),
+            Summary = string.IsNullOrWhiteSpace(request.Summary)
+                ? "Provisioning sync requested from admin console."
+                : request.Summary.Trim(),
+            UsersProcessed = 0,
+            UsersCreated = 0,
+            UsersUpdated = 0,
+            UsersDeactivated = 0,
+            ErrorDetails = string.Empty,
+            StartedAtUtc = DateTime.UtcNow,
+            CompletedAtUtc = settings.SyncMode == ProvisioningSyncMode.Manual ? DateTime.UtcNow : null
+        };
+
+        settings.LastSyncAtUtc = DateTime.UtcNow;
+        settings.LastSyncStatus = job.Status.ToString();
+        settings.LastSyncError = string.Empty;
+
+        _dbContext.OrganizationProvisioningJobs.Add(job);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        await WriteEnterpriseAuditAsync(organizationId, "ProvisioningJobTriggered", "OrganizationProvisioningJob", job.Id.ToString(), job.Summary, cancellationToken);
+
+        return MapProvisioningJob(job);
+    }
+
     private async Task<OrganizationAuthenticationSettings> EnsureAuthenticationSettingsAsync(Guid organizationId, CancellationToken cancellationToken)
     {
         var settings = await _dbContext.OrganizationAuthenticationSettings
@@ -323,6 +380,29 @@ public class OrganizationService : IOrganizationService
         };
 
         _dbContext.OrganizationAuthenticationSettings.Add(settings);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        return settings;
+    }
+
+    private async Task<OrganizationProvisioningSettings> EnsureProvisioningSettingsAsync(Guid organizationId, CancellationToken cancellationToken)
+    {
+        var settings = await _dbContext.OrganizationProvisioningSettings
+            .SingleOrDefaultAsync(x => x.OrganizationId == organizationId, cancellationToken);
+
+        if (settings is not null)
+        {
+            return settings;
+        }
+
+        settings = new OrganizationProvisioningSettings
+        {
+            OrganizationId = organizationId,
+            SyncMode = ProvisioningSyncMode.Manual,
+            GroupMappingStrategy = "Manual",
+            LastSyncStatus = "NotStarted"
+        };
+
+        _dbContext.OrganizationProvisioningSettings.Add(settings);
         await _dbContext.SaveChangesAsync(cancellationToken);
         return settings;
     }
@@ -407,6 +487,37 @@ public class OrganizationService : IOrganizationService
             domain.VerifiedAtUtc,
             domain.LastCheckedAtUtc,
             domain.FailureReason);
+
+    private static OrganizationProvisioningSettingsDto MapProvisioningSettings(OrganizationProvisioningSettings settings) =>
+        new(
+            settings.Id,
+            settings.OrganizationId,
+            settings.SyncMode.ToString(),
+            settings.IdentityProviderId,
+            settings.AutoProvisionNewUsers,
+            settings.AutoDeactivateMissingUsers,
+            settings.GroupMappingStrategy,
+            settings.ScimBaseUrl,
+            settings.LastSyncAtUtc,
+            settings.LastSyncStatus,
+            settings.LastSyncError);
+
+    private static OrganizationProvisioningJobDto MapProvisioningJob(OrganizationProvisioningJob job) =>
+        new(
+            job.Id,
+            job.OrganizationId,
+            job.IdentityProviderId,
+            job.SyncMode.ToString(),
+            job.Status.ToString(),
+            job.TriggeredBy,
+            job.Summary,
+            job.UsersProcessed,
+            job.UsersCreated,
+            job.UsersUpdated,
+            job.UsersDeactivated,
+            job.ErrorDetails,
+            job.StartedAtUtc,
+            job.CompletedAtUtc);
 
     private static string GenerateChallengeToken() =>
         $"flowforge-verification={Convert.ToHexString(Guid.NewGuid().ToByteArray()).ToLowerInvariant()}";

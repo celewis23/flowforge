@@ -197,11 +197,42 @@ public record OrganizationVerifiedDomainDto(
     DateTime? LastCheckedAtUtc,
     string FailureReason);
 
+public record OrganizationProvisioningSettingsDto(
+    Guid Id,
+    Guid OrganizationId,
+    string SyncMode,
+    Guid? IdentityProviderId,
+    bool AutoProvisionNewUsers,
+    bool AutoDeactivateMissingUsers,
+    string GroupMappingStrategy,
+    string ScimBaseUrl,
+    DateTime? LastSyncAtUtc,
+    string LastSyncStatus,
+    string LastSyncError);
+
+public record OrganizationProvisioningJobDto(
+    Guid Id,
+    Guid OrganizationId,
+    Guid? IdentityProviderId,
+    string SyncMode,
+    string Status,
+    string TriggeredBy,
+    string Summary,
+    int UsersProcessed,
+    int UsersCreated,
+    int UsersUpdated,
+    int UsersDeactivated,
+    string ErrorDetails,
+    DateTime StartedAtUtc,
+    DateTime? CompletedAtUtc);
+
 public record OrganizationEnterpriseSettingsDto(
     OrganizationAuthenticationSettingsDto Authentication,
     IReadOnlyCollection<OrganizationIdentityProviderDto> IdentityProviders,
     IReadOnlyCollection<OrganizationIntegrationConnectionDto> Integrations,
-    IReadOnlyCollection<OrganizationVerifiedDomainDto> VerifiedDomains);
+    IReadOnlyCollection<OrganizationVerifiedDomainDto> VerifiedDomains,
+    OrganizationProvisioningSettingsDto Provisioning,
+    IReadOnlyCollection<OrganizationProvisioningJobDto> ProvisioningJobs);
 
 public record EnterpriseIdentityProviderOptionDto(
     Guid IdentityProviderId,

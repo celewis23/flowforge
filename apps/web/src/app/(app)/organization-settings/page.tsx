@@ -8,9 +8,11 @@ import {
   createVerifiedDomainAction,
   createIdentityProviderAction,
   createIntegrationConnectionAction,
+  triggerProvisioningJobAction,
   updateEnterpriseAuthSettingsAction,
   updateIdentityProviderStateAction,
   updateIntegrationConnectionStateAction,
+  updateProvisioningSettingsAction,
   updateVerifiedDomainAction,
   validateIdentityProviderAction,
   verifyDomainStateAction,
@@ -120,6 +122,127 @@ export default async function OrganizationSettingsPage() {
               <Button type="submit">Save enterprise auth policy</Button>
             </div>
           </form>
+        </CardBody>
+      </Card>
+      <Card>
+        <CardHeader>
+          <div className="space-y-2">
+            <h2 className="text-lg font-semibold">Provisioning and lifecycle</h2>
+            <p className="text-sm text-muted-foreground">Configure how enterprise identities are provisioned, mapped, and synchronized into FlowForge.</p>
+          </div>
+        </CardHeader>
+        <CardBody className="space-y-5">
+          <div className="grid gap-4 lg:grid-cols-4">
+            <Setting label="Sync mode" value={formatValue(data.enterprise.provisioning.syncMode)} />
+            <Setting label="Auto provision" value={data.enterprise.provisioning.autoProvisionNewUsers ? "Enabled" : "Disabled"} />
+            <Setting label="Auto deactivate" value={data.enterprise.provisioning.autoDeactivateMissingUsers ? "Enabled" : "Disabled"} />
+            <Setting label="Last sync" value={data.enterprise.provisioning.lastSyncStatus} />
+          </div>
+          <form action={updateProvisioningSettingsAction} className="grid gap-4 rounded-[0.8rem] border border-border bg-surface p-4 lg:grid-cols-2">
+            <input type="hidden" name="organizationId" value={data.organization.id} />
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="provisioning-syncMode">
+                Sync mode
+              </label>
+              <select
+                id="provisioning-syncMode"
+                name="syncMode"
+                defaultValue={toProvisioningSyncModeValue(data.enterprise.provisioning.syncMode)}
+                className="w-full rounded-xl border border-border bg-surface-2 px-4 py-3 text-sm text-foreground shadow-sm"
+              >
+                <option value="1">Manual</option>
+                <option value="2">Just-in-time</option>
+                <option value="3">SCIM</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="provisioning-identityProviderId">
+                Identity provider
+              </label>
+              <select
+                id="provisioning-identityProviderId"
+                name="identityProviderId"
+                defaultValue={data.enterprise.provisioning.identityProviderId ?? ""}
+                className="w-full rounded-xl border border-border bg-surface-2 px-4 py-3 text-sm text-foreground shadow-sm"
+              >
+                <option value="">None</option>
+                {data.enterprise.identityProviders.map((provider) => (
+                  <option key={provider.id} value={provider.id}>
+                    {provider.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="provisioning-groupMappingStrategy">
+                Group mapping strategy
+              </label>
+              <Input id="provisioning-groupMappingStrategy" name="groupMappingStrategy" defaultValue={data.enterprise.provisioning.groupMappingStrategy} />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="provisioning-scimBaseUrl">
+                SCIM base URL
+              </label>
+              <Input id="provisioning-scimBaseUrl" name="scimBaseUrl" defaultValue={data.enterprise.provisioning.scimBaseUrl} placeholder="https://app.flowforge.com/scim/v2" />
+            </div>
+            <div className="space-y-2 lg:col-span-2">
+              <label className="text-sm font-medium" htmlFor="provisioning-scimSecretReference">
+                SCIM secret reference
+              </label>
+              <Input id="provisioning-scimSecretReference" name="scimSecretReference" placeholder="Managed secret value or reference" />
+            </div>
+            <label className="flex items-center gap-2 text-sm text-muted-foreground">
+              <input type="checkbox" name="autoProvisionNewUsers" className="h-4 w-4 rounded border-border" defaultChecked={data.enterprise.provisioning.autoProvisionNewUsers} />
+              Automatically provision new users
+            </label>
+            <label className="flex items-center gap-2 text-sm text-muted-foreground">
+              <input type="checkbox" name="autoDeactivateMissingUsers" className="h-4 w-4 rounded border-border" defaultChecked={data.enterprise.provisioning.autoDeactivateMissingUsers} />
+              Automatically deactivate missing users
+            </label>
+            <div className="lg:col-span-2">
+              <Button type="submit">Save provisioning settings</Button>
+            </div>
+          </form>
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-[0.8rem] border border-border bg-surface p-4">
+            <div className="space-y-1">
+              <p className="font-medium">Trigger provisioning sync</p>
+              <p className="text-sm text-muted-foreground">Create a provisioning job record for admin-triggered lifecycle syncs.</p>
+            </div>
+            <form action={triggerProvisioningJobAction} className="flex flex-wrap items-center gap-2">
+              <input type="hidden" name="organizationId" value={data.organization.id} />
+              <input type="hidden" name="triggeredBy" value="OrgAdmin" />
+              <input type="hidden" name="summary" value="Provisioning sync requested from organization settings." />
+              <Button type="submit" variant="secondary">Run sync</Button>
+            </form>
+          </div>
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">Recent provisioning jobs</h3>
+            {data.enterprise.provisioningJobs.length > 0 ? (
+              data.enterprise.provisioningJobs.map((job) => (
+                <div key={job.id} className="rounded-[0.7rem] border border-border bg-surface p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="space-y-1">
+                      <p className="font-medium">{job.summary}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {formatValue(job.syncMode)} sync started {new Date(job.startedAtUtc).toLocaleString()} by {job.triggeredBy}
+                      </p>
+                    </div>
+                    <Badge variant={job.status === "Succeeded" ? "success" : job.status === "Failed" ? "danger" : "neutral"}>
+                      {formatValue(job.status)}
+                    </Badge>
+                  </div>
+                  <p className="mt-3 text-sm text-muted-foreground">
+                    Processed {job.usersProcessed} users, created {job.usersCreated}, updated {job.usersUpdated}, deactivated {job.usersDeactivated}.
+                  </p>
+                  {job.errorDetails ? <p className="mt-2 text-sm text-danger">{job.errorDetails}</p> : null}
+                </div>
+              ))
+            ) : (
+              <div className="rounded-[0.7rem] border border-dashed border-border bg-surface p-4 text-sm text-muted-foreground">
+                No provisioning jobs have been recorded yet.
+              </div>
+            )}
+          </div>
         </CardBody>
       </Card>
       <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
@@ -802,6 +925,17 @@ function toIntegrationStatusValue(value: string) {
       return "3";
     case "Error":
       return "4";
+    default:
+      return "1";
+  }
+}
+
+function toProvisioningSyncModeValue(value: string) {
+  switch (value) {
+    case "JustInTime":
+      return "2";
+    case "Scim":
+      return "3";
     default:
       return "1";
   }
