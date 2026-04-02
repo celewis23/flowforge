@@ -13,6 +13,7 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
+        services.Configure<EnterpriseAuthOptions>(configuration.GetSection(EnterpriseAuthOptions.SectionName));
 
         var connectionString = configuration.GetConnectionString("DefaultConnection")
                                ?? "Host=localhost;Port=5432;Database=msr_command_center;Username=postgres;Password=postgres";
@@ -31,7 +32,9 @@ public static class DependencyInjection
             .AddEntityFrameworkStores<MsrCommandCenterDbContext>()
             .AddSignInManager();
 
+        services.AddHttpClient(nameof(EnterpriseOidcService));
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IEnterpriseOidcService, EnterpriseOidcService>();
         services.AddScoped<IOrganizationService, OrganizationService>();
         services.AddScoped<IWorkManagementService, WorkManagementService>();
         services.AddScoped<IReportingService, ReportingService>();

@@ -64,3 +64,21 @@ public class ExternalIdentityLink : TenantEntity
     public Organization? Organization { get; set; }
     public OrganizationIdentityProvider? IdentityProvider { get; set; }
 }
+
+public class EnterpriseAuthSession : BaseEntity
+{
+    public Guid OrganizationId { get; set; }
+    public Guid IdentityProviderId { get; set; }
+    public Guid? UserId { get; set; }
+    public string ProviderType { get; set; } = string.Empty;
+    public string StateToken { get; set; } = string.Empty;
+    public string CodeVerifier { get; set; } = string.Empty;
+    public string RedirectUri { get; set; } = string.Empty;
+    public string ReturnUrl { get; set; } = string.Empty;
+    public string EmailHint { get; set; } = string.Empty;
+    public string ExternalSubject { get; set; } = string.Empty;
+    public string ExternalEmail { get; set; } = string.Empty;
+    public DateTime ExpiresAtUtc { get; set; }
+    public DateTime? CompletedAtUtc { get; set; }
+    public string ExchangeToken { get; set; } = string.Empty;
+}

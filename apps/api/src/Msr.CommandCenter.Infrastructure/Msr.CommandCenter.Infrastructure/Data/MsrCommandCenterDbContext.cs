@@ -41,6 +41,7 @@ public class MsrCommandCenterDbContext : IdentityDbContext<ApplicationUser, Iden
     public DbSet<OrganizationIdentityProvider> OrganizationIdentityProviders => Set<OrganizationIdentityProvider>();
     public DbSet<OrganizationIntegrationConnection> OrganizationIntegrationConnections => Set<OrganizationIntegrationConnection>();
     public DbSet<ExternalIdentityLink> ExternalIdentityLinks => Set<ExternalIdentityLink>();
+    public DbSet<EnterpriseAuthSession> EnterpriseAuthSessions => Set<EnterpriseAuthSession>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -80,6 +81,8 @@ public class MsrCommandCenterDbContext : IdentityDbContext<ApplicationUser, Iden
         builder.Entity<OrganizationIntegrationConnection>().HasIndex(x => new { x.OrganizationId, x.ProviderType, x.Name }).IsUnique();
         builder.Entity<ExternalIdentityLink>().HasIndex(x => new { x.OrganizationId, x.ProviderType, x.ExternalSubject }).IsUnique();
         builder.Entity<ExternalIdentityLink>().HasIndex(x => new { x.OrganizationId, x.UserId, x.ProviderType }).IsUnique();
+        builder.Entity<EnterpriseAuthSession>().HasIndex(x => x.StateToken).IsUnique();
+        builder.Entity<EnterpriseAuthSession>().HasIndex(x => x.ExchangeToken).IsUnique();
 
         builder.Entity<Organization>()
             .HasOne(x => x.AuthenticationSettings)

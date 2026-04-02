@@ -43,6 +43,70 @@ export async function loginAction(formData: FormData) {
   redirect("/dashboard");
 }
 
+type EnterpriseDiscoveryResponse = {
+  email: string;
+  domain: string;
+  isEnterpriseConfigured: boolean;
+  isSsoRequired: boolean;
+  allowLocalPasswordSignIn: boolean;
+  providers: Array<{
+    identityProviderId: string;
+    providerType: string;
+    displayName: string;
+    isPrimary: boolean;
+  }>;
+};
+
+type EnterpriseAuthorizationResponse = {
+  authorizeUrl: string;
+  providerType: string;
+  displayName: string;
+};
+
+export async function enterpriseLoginAction(formData: FormData) {
+  const email = String(formData.get("enterpriseEmail") ?? "").trim();
+
+  if (!email) {
+    redirect("/login?error=enterprise-email-required");
+  }
+
+  const discoveryResponse = await fetch(`${apiBaseUrl}/api/auth/enterprise/discovery`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+    cache: "no-store",
+  });
+
+  if (!discoveryResponse.ok) {
+    redirect("/login?error=enterprise-discovery-failed");
+  }
+
+  const discovery = (await discoveryResponse.json()) as EnterpriseDiscoveryResponse;
+  const provider = discovery.providers.find((item) => item.isPrimary) ?? discovery.providers[0];
+
+  if (!provider) {
+    redirect("/login?error=enterprise-not-configured");
+  }
+
+  const initiateResponse = await fetch(`${apiBaseUrl}/api/auth/enterprise/initiate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      email,
+      identityProviderId: provider.identityProviderId,
+      returnUrl: `${process.env.NEXT_PUBLIC_APP_BASE_URL ?? "http://localhost:3000"}/auth/enterprise/callback`,
+    }),
+    cache: "no-store",
+  });
+
+  if (!initiateResponse.ok) {
+    redirect("/login?error=enterprise-initiate-failed");
+  }
+
+  const payload = (await initiateResponse.json()) as EnterpriseAuthorizationResponse;
+  redirect(payload.authorizeUrl);
+}
+
 export async function registerAction(formData: FormData) {
   const fullName = String(formData.get("fullName") ?? "");
   const email = String(formData.get("email") ?? "");

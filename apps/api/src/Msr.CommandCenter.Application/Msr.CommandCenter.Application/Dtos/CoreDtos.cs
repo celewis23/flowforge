@@ -189,6 +189,30 @@ public record OrganizationEnterpriseSettingsDto(
     IReadOnlyCollection<OrganizationIdentityProviderDto> IdentityProviders,
     IReadOnlyCollection<OrganizationIntegrationConnectionDto> Integrations);
 
+public record EnterpriseIdentityProviderOptionDto(
+    Guid IdentityProviderId,
+    Guid OrganizationId,
+    string OrganizationName,
+    string OrganizationSlug,
+    string ProviderType,
+    string DisplayName,
+    bool IsPrimary,
+    bool IsSsoRequired,
+    bool AllowLocalPasswordSignIn);
+
+public record EnterpriseLoginDiscoveryDto(
+    string Email,
+    string Domain,
+    bool IsEnterpriseConfigured,
+    bool IsSsoRequired,
+    bool AllowLocalPasswordSignIn,
+    IReadOnlyCollection<EnterpriseIdentityProviderOptionDto> Providers);
+
+public record EnterpriseAuthorizationUrlDto(
+    string AuthorizeUrl,
+    string ProviderType,
+    string DisplayName);
+
 public record AdminSummaryDto(
     OrganizationSummaryDto Organization,
     IReadOnlyCollection<TeamSummaryDto> Teams,

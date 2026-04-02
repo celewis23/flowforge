@@ -25,6 +25,8 @@ Use it for developer onboarding and repeatable verification.
 - Point the app at a managed PostgreSQL instance or a stateful service with backups.
 - Configure SMTP credentials and sender identities.
 - Set public origin values for CORS and callback URLs.
+- Set enterprise auth URLs for OIDC callback routing:
+  `EnterpriseAuth__ApiBaseUrl`, `EnterpriseAuth__FrontendBaseUrl`, and `NEXT_PUBLIC_APP_BASE_URL`.
 - Turn on HTTPS at the edge.
 - Verify health checks and logging export to your observability stack.
 - Run database migrations during deployment.
@@ -60,6 +62,8 @@ Recommended configuration sources:
 
 Never commit production secrets or database credentials.
 
+For enterprise identity providers, store OIDC client secrets in managed secret storage and reference them through tenant identity-provider configuration rather than hard-coding them in source.
+
 ## Observability
 
 Production deployment should expose:
@@ -79,4 +83,3 @@ Use a simple staged approach:
 3. Deploy the API.
 4. Deploy the web app.
 5. Verify auth, dashboards, and report generation.
-

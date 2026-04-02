@@ -96,3 +96,9 @@ public record UpsertOrganizationIntegrationConnectionRequest(
     IReadOnlyCollection<string> Scopes,
     string ConfigurationJson,
     IntegrationConnectionStatus Status);
+
+public record EnterpriseLoginDiscoveryRequest(string Email);
+
+public record EnterpriseLoginInitiateRequest(string Email, Guid IdentityProviderId, string? ReturnUrl);
+
+public record EnterpriseLoginExchangeRequest(string ExchangeToken);
