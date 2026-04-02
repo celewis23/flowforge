@@ -178,6 +178,34 @@ public class OrganizationService : IOrganizationService
         return MapIdentityProvider(provider);
     }
 
+    public async Task<OrganizationIdentityProviderDto> ValidateIdentityProviderAsync(Guid organizationId, ValidateOrganizationIdentityProviderRequest request, CancellationToken cancellationToken)
+    {
+        var provider = await _dbContext.OrganizationIdentityProviders
+            .Where(x => x.OrganizationId == organizationId && x.Id == request.IdentityProviderId)
+            .SingleAsync(cancellationToken);
+
+        var verifiedDomains = await _dbContext.OrganizationVerifiedDomains
+            .Where(x => x.OrganizationId == organizationId && x.Status == DomainVerificationStatus.Verified)
+            .Select(x => x.Domain)
+            .ToListAsync(cancellationToken);
+
+        provider.LastValidatedAtUtc = DateTime.UtcNow;
+        provider.LastValidationError = ValidateProviderConfiguration(provider, verifiedDomains);
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        await WriteEnterpriseAuditAsync(
+            organizationId,
+            string.IsNullOrWhiteSpace(provider.LastValidationError) ? "IdentityProviderValidated" : "IdentityProviderValidationFailed",
+            "OrganizationIdentityProvider",
+            provider.Id.ToString(),
+            string.IsNullOrWhiteSpace(provider.LastValidationError)
+                ? $"{provider.ProviderType} provider '{provider.Name}' validation passed."
+                : $"{provider.ProviderType} provider '{provider.Name}' validation failed: {provider.LastValidationError}",
+            cancellationToken);
+
+        return MapIdentityProvider(provider);
+    }
+
     public async Task<OrganizationIntegrationConnectionDto> UpsertIntegrationConnectionAsync(Guid organizationId, UpsertOrganizationIntegrationConnectionRequest request, CancellationToken cancellationToken)
     {
         OrganizationIntegrationConnection connection;
@@ -349,6 +377,8 @@ public class OrganizationService : IOrganizationService
             provider.ProvisioningMode.ToString(),
             provider.IsEnabled,
             provider.IsPrimary,
+            ResolveValidationStatus(provider),
+            provider.LastValidationError,
             provider.LastValidatedAtUtc,
             provider.LastSyncAtUtc);
 
@@ -380,4 +410,38 @@ public class OrganizationService : IOrganizationService
 
     private static string GenerateChallengeToken() =>
         $"flowforge-verification={Convert.ToHexString(Guid.NewGuid().ToByteArray()).ToLowerInvariant()}";
+
+    private static string ResolveValidationStatus(OrganizationIdentityProvider provider)
+    {
+        if (!provider.LastValidatedAtUtc.HasValue)
+        {
+            return "NotValidated";
+        }
+
+        return string.IsNullOrWhiteSpace(provider.LastValidationError) ? "Valid" : "Invalid";
+    }
+
+    private static string ValidateProviderConfiguration(OrganizationIdentityProvider provider, IReadOnlyCollection<string> verifiedDomains)
+    {
+        if (string.IsNullOrWhiteSpace(provider.Name))
+        {
+            return "Provider name is required.";
+        }
+
+        if (string.IsNullOrWhiteSpace(provider.ClientId))
+        {
+            return "Client ID is required.";
+        }
+
+        return provider.ProviderType switch
+        {
+            IdentityProviderType.MicrosoftEntraId when string.IsNullOrWhiteSpace(provider.Authority) && string.IsNullOrWhiteSpace(provider.TenantIdentifier)
+                => "Microsoft Entra ID providers require an authority URL or tenant identifier.",
+            IdentityProviderType.GoogleWorkspace when !SplitCsv(provider.DomainHintsCsv).Any() && verifiedDomains.Count == 0
+                => "Google Workspace providers require at least one verified domain or domain hint.",
+            IdentityProviderType.Saml when string.IsNullOrWhiteSpace(provider.MetadataUrl)
+                => "SAML providers require a metadata URL.",
+            _ => string.Empty
+        };
+    }
 }

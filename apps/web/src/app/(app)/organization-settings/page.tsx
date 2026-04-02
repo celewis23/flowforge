@@ -12,6 +12,7 @@ import {
   updateIdentityProviderStateAction,
   updateIntegrationConnectionStateAction,
   updateVerifiedDomainAction,
+  validateIdentityProviderAction,
   verifyDomainStateAction,
 } from "@/lib/enterprise-settings-actions";
 import { getSettingsData } from "@/lib/api";
@@ -155,7 +156,29 @@ export default async function OrganizationSettingsPage() {
                         <TableCell className="space-x-2">
                           {provider.isPrimary ? <Badge variant="accent">Primary</Badge> : null}
                           <Badge variant={provider.isEnabled ? "success" : "neutral"}>{provider.isEnabled ? "Enabled" : "Disabled"}</Badge>
+                          <Badge
+                            variant={
+                              provider.validationStatus === "Valid"
+                                ? "success"
+                                : provider.validationStatus === "Invalid"
+                                  ? "danger"
+                                  : "neutral"
+                            }
+                          >
+                            {formatValue(provider.validationStatus)}
+                          </Badge>
+                          {provider.lastValidatedAtUtc ? (
+                            <p className="mt-2 text-xs text-muted-foreground">Last validated {new Date(provider.lastValidatedAtUtc).toLocaleString()}</p>
+                          ) : null}
+                          {provider.lastValidationError ? (
+                            <p className="mt-2 text-xs text-danger">{provider.lastValidationError}</p>
+                          ) : null}
                           <div className="mt-2 flex flex-wrap gap-2">
+                            <form action={validateIdentityProviderAction}>
+                              <input type="hidden" name="organizationId" value={data.organization.id} />
+                              <input type="hidden" name="identityProviderId" value={provider.id} />
+                              <Button type="submit" size="sm" variant="secondary">Validate</Button>
+                            </form>
                             <form action={updateIdentityProviderStateAction}>
                               <input type="hidden" name="organizationId" value={data.organization.id} />
                               <input type="hidden" name="identityProviderId" value={provider.id} />
@@ -172,7 +195,7 @@ export default async function OrganizationSettingsPage() {
                               <input type="hidden" name="provisioningMode" value={toProvisioningModeValue(provider.provisioningMode)} />
                               <input type="hidden" name="isEnabled" value={provider.isEnabled ? "false" : "true"} />
                               <input type="hidden" name="isPrimary" value={provider.isPrimary ? "true" : "false"} />
-                              <Button type="submit" size="sm" variant="secondary">{provider.isEnabled ? "Disable" : "Enable"}</Button>
+                              <Button type="submit" size="sm" variant="ghost">{provider.isEnabled ? "Disable" : "Enable"}</Button>
                             </form>
                             {!provider.isPrimary ? (
                               <form action={updateIdentityProviderStateAction}>

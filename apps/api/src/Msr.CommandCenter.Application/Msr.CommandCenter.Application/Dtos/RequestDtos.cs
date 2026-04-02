@@ -86,6 +86,8 @@ public record UpsertOrganizationIdentityProviderRequest(
     bool IsEnabled,
     bool IsPrimary);
 
+public record ValidateOrganizationIdentityProviderRequest(Guid IdentityProviderId);
+
 public record UpsertOrganizationIntegrationConnectionRequest(
     Guid? IntegrationConnectionId,
     string Name,

@@ -31,6 +31,7 @@ public class OrganizationIdentityProvider : TenantEntity
     public bool IsEnabled { get; set; }
     public bool IsPrimary { get; set; }
     public DateTime? LastValidatedAtUtc { get; set; }
+    public string LastValidationError { get; set; } = string.Empty;
     public DateTime? LastSyncAtUtc { get; set; }
     public Organization? Organization { get; set; }
 }

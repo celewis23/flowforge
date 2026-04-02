@@ -74,6 +74,8 @@ type OrganizationIdentityProviderDto = {
   provisioningMode: string;
   isEnabled: boolean;
   isPrimary: boolean;
+  validationStatus: string;
+  lastValidationError: string;
   lastValidatedAtUtc?: string | null;
   lastSyncAtUtc?: string | null;
 };

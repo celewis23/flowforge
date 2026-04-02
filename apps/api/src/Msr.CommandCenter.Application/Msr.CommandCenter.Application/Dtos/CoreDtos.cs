@@ -168,6 +168,8 @@ public record OrganizationIdentityProviderDto(
     string ProvisioningMode,
     bool IsEnabled,
     bool IsPrimary,
+    string ValidationStatus,
+    string LastValidationError,
     DateTime? LastValidatedAtUtc,
     DateTime? LastSyncAtUtc);
 

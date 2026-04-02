@@ -113,6 +113,16 @@ export async function updateIdentityProviderStateAction(formData: FormData) {
   revalidatePath("/organization-settings");
 }
 
+export async function validateIdentityProviderAction(formData: FormData) {
+  const organizationId = String(formData.get("organizationId") ?? "");
+
+  await apiMutation(`/api/organizations/${organizationId}/enterprise-settings/identity-providers/validate`, "POST", {
+    identityProviderId: String(formData.get("identityProviderId") ?? ""),
+  });
+
+  revalidatePath("/organization-settings");
+}
+
 export async function createIntegrationConnectionAction(formData: FormData) {
   const organizationId = String(formData.get("organizationId") ?? "");
   const scopes = String(formData.get("scopes") ?? "")

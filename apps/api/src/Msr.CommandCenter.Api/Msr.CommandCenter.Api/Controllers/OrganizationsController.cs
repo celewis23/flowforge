@@ -54,6 +54,11 @@ public class OrganizationsController : ControllerBase
     public Task<OrganizationIdentityProviderDto> UpsertIdentityProvider(Guid organizationId, UpsertOrganizationIdentityProviderRequest request, CancellationToken cancellationToken) =>
         _organizationService.UpsertIdentityProviderAsync(organizationId, request, cancellationToken);
 
+    [HttpPost("{organizationId:guid}/enterprise-settings/identity-providers/validate")]
+    [Authorize(Roles = "OrgAdmin,PlatformAdmin")]
+    public Task<OrganizationIdentityProviderDto> ValidateIdentityProvider(Guid organizationId, ValidateOrganizationIdentityProviderRequest request, CancellationToken cancellationToken) =>
+        _organizationService.ValidateIdentityProviderAsync(organizationId, request, cancellationToken);
+
     [HttpPost("{organizationId:guid}/enterprise-settings/integrations")]
     [Authorize(Roles = "OrgAdmin,PlatformAdmin")]
     public Task<OrganizationIntegrationConnectionDto> UpsertIntegration(Guid organizationId, UpsertOrganizationIntegrationConnectionRequest request, CancellationToken cancellationToken) =>
