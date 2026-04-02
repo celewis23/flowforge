@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CommandPalette } from "@/components/layout/command-palette";
 import { ToastProvider } from "@/components/ui/toast";
-import { appNav } from "@/lib/navigation";
+import { appNavAreas } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 
 export function AppShell({
@@ -47,19 +47,12 @@ function AppShellClient({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
 
-  const grouped = useMemo(() => appNav.reduce<Record<string, typeof appNav>>((acc, item) => {
-    acc[item.group] = acc[item.group] ?? [];
-    acc[item.group].push(item);
-    return acc;
-  }, {}), []);
-  const railItems = [
-    grouped.Core?.[0],
-    grouped.Core?.[1],
-    grouped.Work?.[0],
-    grouped.Reports?.[0],
-    grouped.Admin?.[0],
-  ].filter(Boolean);
-  const topTabs = [...(grouped.Core ?? []).slice(0, 3), ...(grouped.Reports ?? []).slice(0, 1)];
+  const activeArea = useMemo(
+    () => appNavAreas.find((area) => area.items.some((item) => item.href === pathname)) ?? appNavAreas[0],
+    [pathname],
+  );
+  const railItems = appNavAreas;
+  const topTabs = activeArea.items;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -89,7 +82,7 @@ function AppShellClient({
             </button>
             <nav className={cn("flex flex-1 flex-col gap-2", sidebarExpanded ? "items-stretch" : "items-center")}>
               {railItems.map((item) => {
-                const active = pathname === item.href;
+                const active = activeArea.id === item.id;
                 return (
                   <Link
                     key={item.href}
@@ -103,8 +96,15 @@ function AppShellClient({
                       active ? "border-accent bg-accent/8 text-accent" : "border-transparent text-muted-foreground hover:border-border hover:bg-muted",
                     )}
                   >
-                    <RailIcon label={item.label} active={active} />
-                    {sidebarExpanded ? <span className="truncate text-sm font-medium">{item.label}</span> : null}
+                    <RailIcon areaId={item.id} active={active} />
+                    {sidebarExpanded ? (
+                      <div className="min-w-0">
+                        <span className="block truncate text-sm font-medium">{item.label}</span>
+                        <span className="block truncate text-[11px] uppercase tracking-[0.18em] text-muted-foreground/90">
+                          {item.items.length} views
+                        </span>
+                      </div>
+                    ) : null}
                   </Link>
                 );
               })}
@@ -137,7 +137,7 @@ function AppShellClient({
                   <BrandLogo className="lg:hidden" />
                   <div className="hidden lg:block">
                     <p className="text-sm font-semibold">{currentOrg.name}</p>
-                    <p className="text-xs text-muted-foreground">{currentUser.role} workspace</p>
+                    <p className="text-xs text-muted-foreground">{activeArea.label} area</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -153,6 +153,9 @@ function AppShellClient({
                 </div>
               </div>
               <div className="hidden items-center gap-2 overflow-x-auto lg:flex">
+                <span className="mr-1 whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+                  {activeArea.label}
+                </span>
                 {topTabs.map((item) => {
                   const active = pathname === item.href;
                   return (
@@ -179,18 +182,25 @@ function AppShellClient({
           {mobileOpen ? (
             <div className="border-b border-border bg-surface px-4 py-4 lg:hidden">
               <div className="grid gap-2">
-                {appNav.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={cn(
-                      "rounded-lg px-3 py-2 text-sm font-medium",
-                      pathname === item.href ? "bg-accent text-white" : "text-foreground hover:bg-muted",
-                    )}
-                    onClick={() => setMobileOpen(false)}
-                  >
-                    {item.label}
-                  </Link>
+                {appNavAreas.map((area) => (
+                  <div key={area.id} className="space-y-1">
+                    <p className="px-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                      {area.label}
+                    </p>
+                    {area.items.map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className={cn(
+                          "block rounded-lg px-3 py-2 text-sm font-medium",
+                          pathname === item.href ? "bg-accent text-white" : "text-foreground hover:bg-muted",
+                        )}
+                        onClick={() => setMobileOpen(false)}
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
+                  </div>
                 ))}
               </div>
             </div>
@@ -204,20 +214,50 @@ function AppShellClient({
   );
 }
 
-function RailIcon({ label, active }: { label: string; active: boolean }) {
-  const stroke = active ? "currentColor" : "currentColor";
+function RailIcon({ areaId, active }: { areaId: string; active: boolean }) {
+  const tone = active ? "currentColor" : "currentColor";
 
-  switch (label) {
-    case "Dashboard":
-      return <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 13h7V4H4v9Zm9 7h7V4h-7v16ZM4 20h7v-5H4v5Z" fill={stroke} /></svg>;
-    case "My Board":
-      return <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 5h14v4H5V5Zm0 5h6v9H5v-9Zm7 0h7v9h-7v-9Z" fill={stroke} /></svg>;
-    case "Team Members":
-      return <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M16 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM8 13a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm8 1c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4ZM8 15c-3.33 0-8 1.67-8 5v1h6v-3c0-1.13.58-2.12 1.53-2.93A10.3 10.3 0 0 0 8 15Z" fill={stroke} /></svg>;
-    case "My MSRs":
-      return <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6 2h9l5 5v15a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Zm8 1.5V8h4.5" stroke={stroke} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/><path d="M8 13h8M8 17h8M8 9h2" stroke={stroke} strokeWidth="1.8" strokeLinecap="round"/></svg>;
+  switch (areaId) {
+    case "overview":
+      return (
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+          <path d="M4 12.75 12 5l8 7.75V20a1 1 0 0 1-1 1h-4.75v-5.5h-4.5V21H5a1 1 0 0 1-1-1v-7.25Z" stroke={tone} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+    case "work":
+      return (
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+          <path d="M8 4v3m8-3v3M4 10h16M7 20h10a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2H7A2 2 0 0 0 5 8v10a2 2 0 0 0 2 2Z" stroke={tone} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M9 14h6" stroke={tone} strokeWidth="1.9" strokeLinecap="round" />
+        </svg>
+      );
+    case "reports":
+      return (
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+          <path d="M7 3h7l5 5v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" stroke={tone} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M14 3v5h5M9 13h6M9 17h6M9 9h2" stroke={tone} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+    case "admin":
+      return (
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+          <path d="M12 4.75 18 8v8l-6 3.25L6 16V8l6-3.25Z" stroke={tone} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M12 9.25a2.75 2.75 0 1 0 0 5.5 2.75 2.75 0 0 0 0-5.5Z" stroke={tone} strokeWidth="1.9" />
+        </svg>
+      );
+    case "platform":
+      return (
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+          <path d="M12 3 4.5 7v10L12 21l7.5-4V7L12 3Z" stroke={tone} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M12 12 19.5 7M12 12 4.5 7M12 12v9" stroke={tone} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
     default:
-      return <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 4h16v16H4z" stroke={stroke} strokeWidth="1.8" /></svg>;
+      return (
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="8" stroke={tone} strokeWidth="1.9" />
+        </svg>
+      );
   }
 }
 

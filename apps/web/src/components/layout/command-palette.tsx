@@ -47,7 +47,7 @@ export function CommandPalette() {
                     >
                       <div className="flex items-center justify-between gap-4">
                         <span>{item.label}</span>
-                        <span className="text-xs text-muted-foreground">{item.group}</span>
+                        <span className="text-xs text-muted-foreground">{item.areaLabel}</span>
                       </div>
                     </Link>
                   ))}

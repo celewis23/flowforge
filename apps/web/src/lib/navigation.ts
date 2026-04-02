@@ -4,25 +4,78 @@ export const marketingNav = [
   { href: "/login", label: "Log in" },
 ];
 
-export const appNav = [
-  { href: "/dashboard", label: "Dashboard", group: "Core" },
-  { href: "/my-board", label: "My Board", group: "Core" },
-  { href: "/team-board", label: "Team Board", group: "Core" },
-  { href: "/my-tasks", label: "My Tasks", group: "Core" },
-  { href: "/my-activity-log", label: "My Activity Log", group: "Core" },
-  { href: "/my-msrs", label: "My MSRs", group: "Reports" },
-  { href: "/personal-msr-editor", label: "Personal MSR Editor", group: "Reports" },
-  { href: "/team-msr-builder", label: "Team MSR Builder", group: "Reports" },
-  { href: "/reports-archive", label: "Reports Archive", group: "Reports" },
-  { href: "/team-members", label: "Team Members", group: "Work" },
-  { href: "/projects", label: "Projects", group: "Work" },
-  { href: "/reporting-cycles", label: "Reporting Cycles", group: "Work" },
-  { href: "/notifications", label: "Notifications", group: "Work" },
-  { href: "/settings", label: "Settings", group: "Admin" },
-  { href: "/organization-settings", label: "Organization Settings", group: "Admin" },
-  { href: "/team-settings", label: "Team Settings", group: "Admin" },
-  { href: "/template-settings", label: "Template Settings", group: "Admin" },
-  { href: "/user-management", label: "User Management", group: "Admin" },
-  { href: "/audit-logs", label: "Audit Logs", group: "Admin" },
-  { href: "/platform-admin", label: "Platform Admin", group: "Platform" },
+export type AppNavItem = {
+  href: string;
+  label: string;
+};
+
+export type AppNavArea = {
+  id: "overview" | "work" | "reports" | "admin" | "platform";
+  label: string;
+  href: string;
+  items: AppNavItem[];
+};
+
+export const appNavAreas: AppNavArea[] = [
+  {
+    id: "overview",
+    label: "Overview",
+    href: "/dashboard",
+    items: [
+      { href: "/dashboard", label: "Dashboard" },
+      { href: "/my-board", label: "My Board" },
+      { href: "/team-board", label: "Team Board" },
+      { href: "/my-tasks", label: "My Tasks" },
+      { href: "/my-activity-log", label: "Activity Log" },
+    ],
+  },
+  {
+    id: "work",
+    label: "Work",
+    href: "/team-members",
+    items: [
+      { href: "/team-members", label: "Team Members" },
+      { href: "/projects", label: "Projects" },
+      { href: "/reporting-cycles", label: "Reporting Cycles" },
+      { href: "/notifications", label: "Notifications" },
+    ],
+  },
+  {
+    id: "reports",
+    label: "Reports",
+    href: "/my-msrs",
+    items: [
+      { href: "/my-msrs", label: "My MSRs" },
+      { href: "/personal-msr-editor", label: "Personal MSR Editor" },
+      { href: "/team-msr-builder", label: "Team MSR Builder" },
+      { href: "/reports-archive", label: "Reports Archive" },
+    ],
+  },
+  {
+    id: "admin",
+    label: "Admin",
+    href: "/settings",
+    items: [
+      { href: "/settings", label: "Settings" },
+      { href: "/organization-settings", label: "Organization Settings" },
+      { href: "/team-settings", label: "Team Settings" },
+      { href: "/template-settings", label: "Template Settings" },
+      { href: "/user-management", label: "User Management" },
+      { href: "/audit-logs", label: "Audit Logs" },
+    ],
+  },
+  {
+    id: "platform",
+    label: "Platform",
+    href: "/platform-admin",
+    items: [{ href: "/platform-admin", label: "Platform Admin" }],
+  },
 ];
+
+export const appNav = appNavAreas.flatMap((area) =>
+  area.items.map((item) => ({
+    ...item,
+    areaId: area.id,
+    areaLabel: area.label,
+  })),
+);
