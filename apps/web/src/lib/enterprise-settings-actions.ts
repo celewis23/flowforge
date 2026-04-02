@@ -331,3 +331,47 @@ export async function updateExportDestinationAction(formData: FormData) {
 
   revalidatePath("/organization-settings");
 }
+
+export async function createCalendarSyncSettingAction(formData: FormData) {
+  const organizationId = String(formData.get("organizationId") ?? "");
+  const defaultReminderOffsets = String(formData.get("defaultReminderOffsets") ?? "")
+    .split(",")
+    .map((item) => Number(item.trim()))
+    .filter((item) => !Number.isNaN(item) && item >= 0);
+
+  await apiMutation(`/api/organizations/${organizationId}/enterprise-settings/calendar-sync`, "POST", {
+    calendarSyncSettingId: null,
+    integrationConnectionId: String(formData.get("integrationConnectionId") ?? ""),
+    eventType: Number(formData.get("eventType") ?? 2),
+    calendarReference: String(formData.get("calendarReference") ?? ""),
+    calendarLabel: String(formData.get("calendarLabel") ?? ""),
+    defaultReminderOffsets,
+    isEnabled: formData.get("isEnabled") === "on",
+    syncAllTeams: formData.get("syncAllTeams") === "on",
+    teamId: formData.get("teamId") ? String(formData.get("teamId")) : null,
+  });
+
+  revalidatePath("/organization-settings");
+}
+
+export async function updateCalendarSyncSettingAction(formData: FormData) {
+  const organizationId = String(formData.get("organizationId") ?? "");
+  const defaultReminderOffsets = String(formData.get("defaultReminderOffsets") ?? "")
+    .split(",")
+    .map((item) => Number(item.trim()))
+    .filter((item) => !Number.isNaN(item) && item >= 0);
+
+  await apiMutation(`/api/organizations/${organizationId}/enterprise-settings/calendar-sync`, "POST", {
+    calendarSyncSettingId: String(formData.get("calendarSyncSettingId") ?? ""),
+    integrationConnectionId: String(formData.get("integrationConnectionId") ?? ""),
+    eventType: Number(formData.get("eventType") ?? 2),
+    calendarReference: String(formData.get("calendarReference") ?? ""),
+    calendarLabel: String(formData.get("calendarLabel") ?? ""),
+    defaultReminderOffsets,
+    isEnabled: formData.get("isEnabled") === "true" || formData.get("isEnabled") === "on",
+    syncAllTeams: formData.get("syncAllTeams") === "true" || formData.get("syncAllTeams") === "on",
+    teamId: formData.get("teamId") ? String(formData.get("teamId")) : null,
+  });
+
+  revalidatePath("/organization-settings");
+}

@@ -173,6 +173,20 @@ type OrganizationExportDestinationDto = {
   lastDeliveredAtUtc?: string | null;
   lastDeliveryError: string;
 };
+type OrganizationCalendarSyncSettingDto = {
+  id: string;
+  organizationId: string;
+  integrationConnectionId: string;
+  eventType: string;
+  calendarReference: string;
+  calendarLabel: string;
+  defaultReminderOffsets: number[];
+  isEnabled: boolean;
+  syncAllTeams: boolean;
+  teamId?: string | null;
+  lastSyncedAtUtc?: string | null;
+  lastSyncError: string;
+};
 type OrganizationEnterpriseSettingsDto = {
   authentication: OrganizationAuthenticationSettingsDto;
   identityProviders: OrganizationIdentityProviderDto[];
@@ -183,6 +197,7 @@ type OrganizationEnterpriseSettingsDto = {
   directoryGroupMappings: OrganizationDirectoryGroupMappingDto[];
   notificationRoutes: OrganizationNotificationRouteDto[];
   exportDestinations: OrganizationExportDestinationDto[];
+  calendarSyncSettings: OrganizationCalendarSyncSettingDto[];
 };
 
 async function apiFetch<T>(path: string): Promise<T> {
@@ -849,6 +864,7 @@ async function getEnterpriseSettingsData(organizationId: string) {
       directoryGroupMappings: [],
       notificationRoutes: [],
       exportDestinations: [],
+      calendarSyncSettings: [],
     } satisfies OrganizationEnterpriseSettingsDto;
   }
 }

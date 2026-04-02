@@ -267,6 +267,20 @@ public record OrganizationExportDestinationDto(
     DateTime? LastDeliveredAtUtc,
     string LastDeliveryError);
 
+public record OrganizationCalendarSyncSettingDto(
+    Guid Id,
+    Guid OrganizationId,
+    Guid IntegrationConnectionId,
+    string EventType,
+    string CalendarReference,
+    string CalendarLabel,
+    IReadOnlyCollection<int> DefaultReminderOffsets,
+    bool IsEnabled,
+    bool SyncAllTeams,
+    Guid? TeamId,
+    DateTime? LastSyncedAtUtc,
+    string LastSyncError);
+
 public record OrganizationEnterpriseSettingsDto(
     OrganizationAuthenticationSettingsDto Authentication,
     IReadOnlyCollection<OrganizationIdentityProviderDto> IdentityProviders,
@@ -276,7 +290,8 @@ public record OrganizationEnterpriseSettingsDto(
     IReadOnlyCollection<OrganizationProvisioningJobDto> ProvisioningJobs,
     IReadOnlyCollection<OrganizationDirectoryGroupMappingDto> DirectoryGroupMappings,
     IReadOnlyCollection<OrganizationNotificationRouteDto> NotificationRoutes,
-    IReadOnlyCollection<OrganizationExportDestinationDto> ExportDestinations);
+    IReadOnlyCollection<OrganizationExportDestinationDto> ExportDestinations,
+    IReadOnlyCollection<OrganizationCalendarSyncSettingDto> CalendarSyncSettings);
 
 public record EnterpriseIdentityProviderOptionDto(
     Guid IdentityProviderId,

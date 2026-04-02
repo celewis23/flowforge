@@ -155,3 +155,10 @@ public enum ExportDestinationType
     OneDriveFolder = 2,
     GoogleDriveFolder = 3
 }
+
+public enum CalendarSyncEventType
+{
+    ReportingCycleWindow = 1,
+    SubmissionDeadline = 2,
+    ManagerReviewDeadline = 3
+}

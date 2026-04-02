@@ -148,6 +148,17 @@ public record UpsertOrganizationExportDestinationRequest(
     bool IsDefault,
     bool IsActive);
 
+public record UpsertOrganizationCalendarSyncSettingRequest(
+    Guid? CalendarSyncSettingId,
+    Guid IntegrationConnectionId,
+    CalendarSyncEventType EventType,
+    string CalendarReference,
+    string CalendarLabel,
+    IReadOnlyCollection<int> DefaultReminderOffsets,
+    bool IsEnabled,
+    bool SyncAllTeams,
+    Guid? TeamId);
+
 public record TriggerOrganizationProvisioningJobRequest(
     string TriggeredBy,
     string Summary);

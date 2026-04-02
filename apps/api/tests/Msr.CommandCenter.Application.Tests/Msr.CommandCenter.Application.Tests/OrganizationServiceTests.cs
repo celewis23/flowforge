@@ -253,6 +253,69 @@ public class OrganizationServiceTests
         Assert.True(result.IsActive);
     }
 
+    [Fact]
+    public async Task UpsertCalendarSyncSettingAsync_CreatesDeadlineSyncRule()
+    {
+        await using var dbContext = CreateDbContext();
+        var organizationId = Guid.NewGuid();
+        var integrationId = Guid.NewGuid();
+        var teamId = Guid.NewGuid();
+
+        dbContext.Organizations.Add(new Organization
+        {
+            Id = organizationId,
+            Name = "FlowForge Energy",
+            Slug = "flowforge-energy",
+            Domain = "energy.example.com",
+            DefaultCadence = "Monthly"
+        });
+
+        dbContext.Teams.Add(new Team
+        {
+            Id = teamId,
+            OrganizationId = organizationId,
+            Name = "Grid Reliability",
+            Department = "Operations",
+            ManagerId = Guid.NewGuid()
+        });
+
+        dbContext.OrganizationIntegrationConnections.Add(new OrganizationIntegrationConnection
+        {
+            Id = integrationId,
+            OrganizationId = organizationId,
+            Name = "Northwind Google Workspace",
+            ProviderType = IntegrationProviderType.GoogleWorkspace,
+            ClientId = "gw-client",
+            ClientSecretReference = "gw-secret",
+            TenantIdentifier = "workspace-id",
+            Status = IntegrationConnectionStatus.Active
+        });
+
+        await dbContext.SaveChangesAsync();
+
+        var service = new OrganizationService(dbContext);
+        var result = await service.UpsertCalendarSyncSettingAsync(
+            organizationId,
+            new UpsertOrganizationCalendarSyncSettingRequest(
+                null,
+                integrationId,
+                CalendarSyncEventType.SubmissionDeadline,
+                "primary-calendar-id",
+                "Reporting Deadlines",
+                new[] { 7, 3, 1 },
+                true,
+                false,
+                teamId),
+            CancellationToken.None);
+
+        Assert.Equal(integrationId, result.IntegrationConnectionId);
+        Assert.Equal("SubmissionDeadline", result.EventType);
+        Assert.Equal("Reporting Deadlines", result.CalendarLabel);
+        Assert.Equal(teamId, result.TeamId);
+        Assert.Equal(new[] { 1, 3, 7 }, result.DefaultReminderOffsets.OrderBy(x => x).ToArray());
+        Assert.True(result.IsEnabled);
+    }
+
     private static MsrCommandCenterDbContext CreateDbContext()
     {
         var options = new DbContextOptionsBuilder<MsrCommandCenterDbContext>()

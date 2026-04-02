@@ -119,6 +119,12 @@ public class OrganizationService : IOrganizationService
             .ThenByDescending(x => x.IsActive)
             .ThenBy(x => x.Name)
             .ToListAsync(cancellationToken);
+        var calendarSyncSettings = await _dbContext.OrganizationCalendarSyncSettings
+            .Where(x => x.OrganizationId == organizationId)
+            .OrderByDescending(x => x.IsEnabled)
+            .ThenBy(x => x.EventType)
+            .ThenBy(x => x.CalendarLabel)
+            .ToListAsync(cancellationToken);
 
         return new OrganizationEnterpriseSettingsDto(
             MapAuthenticationSettings(auth),
@@ -129,7 +135,8 @@ public class OrganizationService : IOrganizationService
             provisioningJobs.Select(MapProvisioningJob).ToList(),
             directoryGroupMappings.Select(MapDirectoryGroupMapping).ToList(),
             notificationRoutes.Select(MapNotificationRoute).ToList(),
-            exportDestinations.Select(MapExportDestination).ToList());
+            exportDestinations.Select(MapExportDestination).ToList(),
+            calendarSyncSettings.Select(MapCalendarSyncSetting).ToList());
     }
 
     public async Task<OrganizationAuthenticationSettingsDto> UpdateAuthenticationSettingsAsync(Guid organizationId, UpdateOrganizationAuthenticationSettingsRequest request, CancellationToken cancellationToken)
@@ -601,6 +608,86 @@ public class OrganizationService : IOrganizationService
         return MapExportDestination(destination);
     }
 
+    public async Task<OrganizationCalendarSyncSettingDto> UpsertCalendarSyncSettingAsync(Guid organizationId, UpsertOrganizationCalendarSyncSettingRequest request, CancellationToken cancellationToken)
+    {
+        var integration = await _dbContext.OrganizationIntegrationConnections
+            .Where(x => x.OrganizationId == organizationId && x.Id == request.IntegrationConnectionId)
+            .SingleOrDefaultAsync(cancellationToken)
+            ?? throw new InvalidOperationException("The selected integration connection does not belong to this organization.");
+
+        if (integration.ProviderType == IntegrationProviderType.Slack)
+        {
+            throw new InvalidOperationException("Slack integrations cannot be used for calendar sync.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.CalendarReference))
+        {
+            throw new InvalidOperationException("A calendar reference is required.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.CalendarLabel))
+        {
+            throw new InvalidOperationException("A calendar label is required.");
+        }
+
+        Team? team = null;
+        if (!request.SyncAllTeams)
+        {
+            if (!request.TeamId.HasValue)
+            {
+                throw new InvalidOperationException("Select a team or sync all teams.");
+            }
+
+            team = await _dbContext.Teams
+                .Where(x => x.OrganizationId == organizationId && x.Id == request.TeamId.Value)
+                .SingleOrDefaultAsync(cancellationToken)
+                ?? throw new InvalidOperationException("The selected team does not belong to this organization.");
+        }
+
+        var reminderOffsets = request.DefaultReminderOffsets
+            .Distinct()
+            .Where(x => x >= 0)
+            .OrderBy(x => x)
+            .ToArray();
+
+        OrganizationCalendarSyncSetting setting;
+        if (request.CalendarSyncSettingId.HasValue)
+        {
+            setting = await _dbContext.OrganizationCalendarSyncSettings
+                .Where(x => x.OrganizationId == organizationId && x.Id == request.CalendarSyncSettingId.Value)
+                .SingleAsync(cancellationToken);
+        }
+        else
+        {
+            setting = new OrganizationCalendarSyncSetting
+            {
+                OrganizationId = organizationId
+            };
+            _dbContext.OrganizationCalendarSyncSettings.Add(setting);
+        }
+
+        setting.IntegrationConnectionId = integration.Id;
+        setting.EventType = request.EventType;
+        setting.CalendarReference = request.CalendarReference.Trim();
+        setting.CalendarLabel = request.CalendarLabel.Trim();
+        setting.DefaultReminderOffsetsCsv = JoinCsv(reminderOffsets.Select(x => x.ToString()));
+        setting.IsEnabled = request.IsEnabled;
+        setting.SyncAllTeams = request.SyncAllTeams;
+        setting.TeamId = request.SyncAllTeams ? null : team?.Id;
+        setting.LastSyncError = string.Empty;
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        await WriteEnterpriseAuditAsync(
+            organizationId,
+            "CalendarSyncSettingUpserted",
+            "OrganizationCalendarSyncSetting",
+            setting.Id.ToString(),
+            $"Configured {setting.EventType} calendar sync to '{setting.CalendarLabel}' via {integration.Name}.",
+            cancellationToken);
+
+        return MapCalendarSyncSetting(setting);
+    }
+
     private async Task<OrganizationAuthenticationSettings> EnsureAuthenticationSettingsAsync(Guid organizationId, CancellationToken cancellationToken)
     {
         var settings = await _dbContext.OrganizationAuthenticationSettings
@@ -801,6 +888,21 @@ public class OrganizationService : IOrganizationService
             destination.LastValidationError,
             destination.LastDeliveredAtUtc,
             destination.LastDeliveryError);
+
+    private static OrganizationCalendarSyncSettingDto MapCalendarSyncSetting(OrganizationCalendarSyncSetting setting) =>
+        new(
+            setting.Id,
+            setting.OrganizationId,
+            setting.IntegrationConnectionId,
+            setting.EventType.ToString(),
+            setting.CalendarReference,
+            setting.CalendarLabel,
+            SplitCsv(setting.DefaultReminderOffsetsCsv).Select(value => int.TryParse(value, out var parsed) ? parsed : -1).Where(value => value >= 0).ToArray(),
+            setting.IsEnabled,
+            setting.SyncAllTeams,
+            setting.TeamId,
+            setting.LastSyncedAtUtc,
+            setting.LastSyncError);
 
     private static string GenerateChallengeToken() =>
         $"flowforge-verification={Convert.ToHexString(Guid.NewGuid().ToByteArray()).ToLowerInvariant()}";

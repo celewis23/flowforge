@@ -26,6 +26,7 @@ public class Organization : BaseEntity
     public ICollection<OrganizationDirectoryGroupMapping> DirectoryGroupMappings { get; set; } = new List<OrganizationDirectoryGroupMapping>();
     public ICollection<OrganizationNotificationRoute> NotificationRoutes { get; set; } = new List<OrganizationNotificationRoute>();
     public ICollection<OrganizationExportDestination> ExportDestinations { get; set; } = new List<OrganizationExportDestination>();
+    public ICollection<OrganizationCalendarSyncSetting> CalendarSyncSettings { get; set; } = new List<OrganizationCalendarSyncSetting>();
     public ICollection<ExternalIdentityLink> ExternalIdentityLinks { get; set; } = new List<ExternalIdentityLink>();
 }
 
@@ -38,6 +39,7 @@ public class Team : TenantEntity
     public ICollection<TeamMembership> Memberships { get; set; } = new List<TeamMembership>();
     public ICollection<ReportingCycle> ReportingCycles { get; set; } = new List<ReportingCycle>();
     public ICollection<OrganizationDirectoryGroupMapping> DirectoryGroupMappings { get; set; } = new List<OrganizationDirectoryGroupMapping>();
+    public ICollection<OrganizationCalendarSyncSetting> CalendarSyncSettings { get; set; } = new List<OrganizationCalendarSyncSetting>();
 }
 
 public class TeamMembership : TenantEntity

@@ -98,4 +98,9 @@ public class OrganizationsController : ControllerBase
     [Authorize(Roles = "OrgAdmin,PlatformAdmin")]
     public Task<OrganizationExportDestinationDto> UpsertExportDestination(Guid organizationId, UpsertOrganizationExportDestinationRequest request, CancellationToken cancellationToken) =>
         _organizationService.UpsertExportDestinationAsync(organizationId, request, cancellationToken);
+
+    [HttpPost("{organizationId:guid}/enterprise-settings/calendar-sync")]
+    [Authorize(Roles = "OrgAdmin,PlatformAdmin")]
+    public Task<OrganizationCalendarSyncSettingDto> UpsertCalendarSyncSetting(Guid organizationId, UpsertOrganizationCalendarSyncSettingRequest request, CancellationToken cancellationToken) =>
+        _organizationService.UpsertCalendarSyncSettingAsync(organizationId, request, cancellationToken);
 }

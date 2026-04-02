@@ -144,6 +144,23 @@ public class OrganizationExportDestination : TenantEntity
     public OrganizationIntegrationConnection? IntegrationConnection { get; set; }
 }
 
+public class OrganizationCalendarSyncSetting : TenantEntity
+{
+    public Guid IntegrationConnectionId { get; set; }
+    public CalendarSyncEventType EventType { get; set; } = CalendarSyncEventType.SubmissionDeadline;
+    public string CalendarReference { get; set; } = string.Empty;
+    public string CalendarLabel { get; set; } = string.Empty;
+    public string DefaultReminderOffsetsCsv { get; set; } = string.Empty;
+    public bool IsEnabled { get; set; } = true;
+    public bool SyncAllTeams { get; set; } = true;
+    public Guid? TeamId { get; set; }
+    public DateTime? LastSyncedAtUtc { get; set; }
+    public string LastSyncError { get; set; } = string.Empty;
+    public Organization? Organization { get; set; }
+    public OrganizationIntegrationConnection? IntegrationConnection { get; set; }
+    public Team? Team { get; set; }
+}
+
 public class ExternalIdentityLink : TenantEntity
 {
     public Guid UserId { get; set; }

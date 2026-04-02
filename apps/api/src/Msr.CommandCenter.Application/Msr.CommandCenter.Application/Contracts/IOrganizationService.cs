@@ -20,4 +20,5 @@ public interface IOrganizationService
     Task<OrganizationDirectoryGroupMappingDto> UpsertDirectoryGroupMappingAsync(Guid organizationId, UpsertOrganizationDirectoryGroupMappingRequest request, CancellationToken cancellationToken);
     Task<OrganizationNotificationRouteDto> UpsertNotificationRouteAsync(Guid organizationId, UpsertOrganizationNotificationRouteRequest request, CancellationToken cancellationToken);
     Task<OrganizationExportDestinationDto> UpsertExportDestinationAsync(Guid organizationId, UpsertOrganizationExportDestinationRequest request, CancellationToken cancellationToken);
+    Task<OrganizationCalendarSyncSettingDto> UpsertCalendarSyncSettingAsync(Guid organizationId, UpsertOrganizationCalendarSyncSettingRequest request, CancellationToken cancellationToken);
 }

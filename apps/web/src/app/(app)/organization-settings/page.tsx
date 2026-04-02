@@ -6,12 +6,14 @@ import { PageShell } from "@/components/layout/page-shell";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   createDirectoryGroupMappingAction,
+  createCalendarSyncSettingAction,
   createExportDestinationAction,
   createNotificationRouteAction,
   createVerifiedDomainAction,
   createIdentityProviderAction,
   createIntegrationConnectionAction,
   triggerProvisioningJobAction,
+  updateCalendarSyncSettingAction,
   updateDirectoryGroupMappingAction,
   updateEnterpriseAuthSettingsAction,
   updateExportDestinationAction,
@@ -126,6 +128,216 @@ export default async function OrganizationSettingsPage() {
             </label>
             <div className="lg:col-span-2">
               <Button type="submit">Save enterprise auth policy</Button>
+            </div>
+          </form>
+        </CardBody>
+      </Card>
+      <Card>
+        <CardHeader>
+          <div className="space-y-2">
+            <h2 className="text-lg font-semibold">Calendar sync</h2>
+            <p className="text-sm text-muted-foreground">Sync reporting cycle windows, submission deadlines, and manager review deadlines into Outlook or Google Calendar through your enterprise integrations.</p>
+          </div>
+        </CardHeader>
+        <CardBody className="space-y-5">
+          {data.enterprise.calendarSyncSettings.length > 0 ? (
+            <div className="space-y-3">
+              {data.enterprise.calendarSyncSettings.map((setting) => {
+                const integration = data.enterprise.integrations.find((item) => item.id === setting.integrationConnectionId);
+                const team = setting.teamId ? data.teams.find((item) => item.id === setting.teamId) : null;
+
+                return (
+                  <div key={setting.id} className="rounded-[0.8rem] border border-border bg-surface p-4">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="space-y-1">
+                        <p className="font-medium">{setting.calendarLabel}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {formatValue(setting.eventType)} via {integration?.name ?? "Unknown integration"}{team ? ` for ${team.name}` : " for all teams"}
+                        </p>
+                      </div>
+                      <Badge variant={setting.isEnabled ? "success" : "neutral"}>{setting.isEnabled ? "Enabled" : "Paused"}</Badge>
+                    </div>
+                    <p className="mt-3 text-sm text-muted-foreground">Calendar reference: {setting.calendarReference}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">Reminder offsets: {setting.defaultReminderOffsets.length > 0 ? setting.defaultReminderOffsets.join(", ") : "None"} days</p>
+                    {setting.lastSyncedAtUtc ? (
+                      <p className="mt-2 text-xs text-muted-foreground">Last synced {new Date(setting.lastSyncedAtUtc).toLocaleString()}</p>
+                    ) : null}
+                    {setting.lastSyncError ? <p className="mt-2 text-xs text-danger">{setting.lastSyncError}</p> : null}
+                    <details className="mt-3 rounded-[0.7rem] border border-border bg-surface-2 p-3">
+                      <summary className="cursor-pointer text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                        Edit calendar sync
+                      </summary>
+                      <form action={updateCalendarSyncSettingAction} className="mt-3 grid gap-3 lg:grid-cols-2">
+                        <input type="hidden" name="organizationId" value={data.organization.id} />
+                        <input type="hidden" name="calendarSyncSettingId" value={setting.id} />
+                        <input type="hidden" name="isEnabled" value={setting.isEnabled ? "true" : "false"} />
+                        <input type="hidden" name="syncAllTeams" value={setting.syncAllTeams ? "true" : "false"} />
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium" htmlFor={`calendar-integration-${setting.id}`}>
+                            Integration connection
+                          </label>
+                          <select
+                            id={`calendar-integration-${setting.id}`}
+                            name="integrationConnectionId"
+                            defaultValue={setting.integrationConnectionId}
+                            className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-foreground shadow-sm"
+                          >
+                            {data.enterprise.integrations
+                              .filter((integrationOption) => integrationOption.providerType !== "Slack")
+                              .map((integrationOption) => (
+                                <option key={integrationOption.id} value={integrationOption.id}>
+                                  {integrationOption.name}
+                                </option>
+                              ))}
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium" htmlFor={`calendar-event-${setting.id}`}>
+                            Event type
+                          </label>
+                          <select
+                            id={`calendar-event-${setting.id}`}
+                            name="eventType"
+                            defaultValue={toCalendarSyncEventTypeValue(setting.eventType)}
+                            className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-foreground shadow-sm"
+                          >
+                            <option value="1">Reporting cycle window</option>
+                            <option value="2">Submission deadline</option>
+                            <option value="3">Manager review deadline</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium" htmlFor={`calendar-reference-${setting.id}`}>
+                            Calendar reference
+                          </label>
+                          <Input id={`calendar-reference-${setting.id}`} name="calendarReference" defaultValue={setting.calendarReference} />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium" htmlFor={`calendar-label-${setting.id}`}>
+                            Calendar label
+                          </label>
+                          <Input id={`calendar-label-${setting.id}`} name="calendarLabel" defaultValue={setting.calendarLabel} />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium" htmlFor={`calendar-reminders-${setting.id}`}>
+                            Reminder offsets
+                          </label>
+                          <Input id={`calendar-reminders-${setting.id}`} name="defaultReminderOffsets" defaultValue={setting.defaultReminderOffsets.join(", ")} />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium" htmlFor={`calendar-team-${setting.id}`}>
+                            Team scope
+                          </label>
+                          <select
+                            id={`calendar-team-${setting.id}`}
+                            name="teamId"
+                            defaultValue={setting.teamId ?? ""}
+                            className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-foreground shadow-sm"
+                          >
+                            <option value="">All teams</option>
+                            {data.teams.map((teamOption) => (
+                              <option key={teamOption.id} value={teamOption.id}>
+                                {teamOption.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="flex flex-col justify-end gap-2 pb-1">
+                          <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <input type="checkbox" name="isEnabled" className="h-4 w-4 rounded border-border" defaultChecked={setting.isEnabled} />
+                            Sync enabled
+                          </label>
+                          <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <input type="checkbox" name="syncAllTeams" className="h-4 w-4 rounded border-border" defaultChecked={setting.syncAllTeams} />
+                            Apply to all teams
+                          </label>
+                        </div>
+                        <div className="lg:col-span-2">
+                          <Button type="submit" size="sm">Save calendar sync</Button>
+                        </div>
+                      </form>
+                    </details>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="rounded-[0.7rem] border border-dashed border-border bg-surface p-4 text-sm text-muted-foreground">
+              No Outlook or Google Calendar sync settings configured yet.
+            </div>
+          )}
+          <form action={createCalendarSyncSettingAction} className="grid gap-4 rounded-[0.8rem] border border-border bg-surface p-4 lg:grid-cols-2">
+            <input type="hidden" name="organizationId" value={data.organization.id} />
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="calendar-sync-integration">
+                Integration connection
+              </label>
+              <select id="calendar-sync-integration" name="integrationConnectionId" className="w-full rounded-xl border border-border bg-surface-2 px-4 py-3 text-sm text-foreground shadow-sm">
+                {data.enterprise.integrations
+                  .filter((integration) => integration.providerType !== "Slack")
+                  .map((integration) => (
+                    <option key={integration.id} value={integration.id}>
+                      {integration.name}
+                    </option>
+                  ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="calendar-sync-event">
+                Event type
+              </label>
+              <select id="calendar-sync-event" name="eventType" defaultValue="2" className="w-full rounded-xl border border-border bg-surface-2 px-4 py-3 text-sm text-foreground shadow-sm">
+                <option value="1">Reporting cycle window</option>
+                <option value="2">Submission deadline</option>
+                <option value="3">Manager review deadline</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="calendar-sync-reference">
+                Calendar reference
+              </label>
+              <Input id="calendar-sync-reference" name="calendarReference" placeholder="calendar-id or group calendar key" />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="calendar-sync-label">
+                Calendar label
+              </label>
+              <Input id="calendar-sync-label" name="calendarLabel" placeholder="Operations reporting calendar" />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="calendar-sync-reminders">
+                Reminder offsets
+              </label>
+              <Input id="calendar-sync-reminders" name="defaultReminderOffsets" placeholder="7, 3, 1" />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="calendar-sync-team">
+                Team scope
+              </label>
+              <select id="calendar-sync-team" name="teamId" defaultValue="" className="w-full rounded-xl border border-border bg-surface-2 px-4 py-3 text-sm text-foreground shadow-sm">
+                <option value="">All teams</option>
+                {data.teams.map((team) => (
+                  <option key={team.id} value={team.id}>
+                    {team.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <label className="flex items-center gap-2 text-sm text-muted-foreground">
+              <input type="checkbox" name="isEnabled" className="h-4 w-4 rounded border-border" defaultChecked />
+              Enable sync
+            </label>
+            <label className="flex items-center gap-2 text-sm text-muted-foreground">
+              <input type="checkbox" name="syncAllTeams" className="h-4 w-4 rounded border-border" defaultChecked />
+              Apply to all teams
+            </label>
+            <div className="lg:col-span-2">
+              <Button type="submit" disabled={data.enterprise.integrations.filter((integration) => integration.providerType !== "Slack").length === 0}>
+                Add calendar sync
+              </Button>
+              {data.enterprise.integrations.filter((integration) => integration.providerType !== "Slack").length === 0 ? (
+                <p className="mt-2 text-sm text-muted-foreground">Add a Microsoft 365 or Google Workspace integration before creating calendar sync settings.</p>
+              ) : null}
             </div>
           </form>
         </CardBody>
@@ -1567,5 +1779,16 @@ function toExportDestinationTypeValue(value: string) {
       return "3";
     default:
       return "1";
+  }
+}
+
+function toCalendarSyncEventTypeValue(value: string) {
+  switch (value) {
+    case "ReportingCycleWindow":
+      return "1";
+    case "ManagerReviewDeadline":
+      return "3";
+    default:
+      return "2";
   }
 }
