@@ -45,7 +45,20 @@ type TeamMsrDto = { id: string; teamId: string; reportingCycleId: string; status
 type NotificationDto = { id: string; type: number; title: string; message: string; link: string; createdAtUtc: string; readAtUtc?: string | null };
 type DashboardDto = { dueSoonCards: CardDto[]; blockedCards: CardDto[]; recentCompletions: CardDto[]; workloadByPerson: Record<string, number>; workloadByProject: Record<string, number>; repeatedBlockers: string[]; nextMsrDueDateUtc?: string | null; submissionCompletionRate: number };
 type AuditLogDto = { id: string; action: string; entityName: string; entityId: string; details: string; createdAtUtc: string; correlationId: string };
-type AdminUserDto = { id: string; fullName: string; email: string; role: string; title: string; teamId?: string | null; isActive: boolean };
+type AdminUserDto = {
+  id: string;
+  fullName: string;
+  email: string;
+  role: string;
+  title: string;
+  teamId?: string | null;
+  isActive: boolean;
+  department: string;
+  officeLocation: string;
+  managerUserId?: string | null;
+  profilePhotoUrl: string;
+  lastDirectorySyncAtUtc?: string | null;
+};
 type InvitationDto = { id: string; email: string; role: string; teamId: string; expiresAtUtc: string; acceptedAtUtc?: string | null };
 type TemplateDto = { id: string; name: string; templateType: string; requiredSectionsJson: string; promptQuestionsJson: string; defaultBoardColumnsJson: string; brandingJson: string };
 type AdminSummaryDto = { organization: OrganizationSummaryDto; teams: TeamSummaryDto[]; users: AdminUserDto[]; invitations: InvitationDto[]; templates: TemplateDto[]; auditLogs: AuditLogDto[] };
@@ -187,6 +200,19 @@ type OrganizationCalendarSyncSettingDto = {
   lastSyncedAtUtc?: string | null;
   lastSyncError: string;
 };
+type OrganizationProfileSyncSettingDto = {
+  id: string;
+  organizationId: string;
+  integrationConnectionId: string;
+  isEnabled: boolean;
+  syncJobTitles: boolean;
+  syncDepartments: boolean;
+  syncManagerHierarchy: boolean;
+  syncOfficeLocation: boolean;
+  syncProfilePhotos: boolean;
+  lastSyncedAtUtc?: string | null;
+  lastSyncError: string;
+};
 type OrganizationEnterpriseSettingsDto = {
   authentication: OrganizationAuthenticationSettingsDto;
   identityProviders: OrganizationIdentityProviderDto[];
@@ -198,6 +224,7 @@ type OrganizationEnterpriseSettingsDto = {
   notificationRoutes: OrganizationNotificationRouteDto[];
   exportDestinations: OrganizationExportDestinationDto[];
   calendarSyncSettings: OrganizationCalendarSyncSettingDto[];
+  profileSyncSettings: OrganizationProfileSyncSettingDto[];
 };
 
 async function apiFetch<T>(path: string): Promise<T> {
@@ -348,9 +375,13 @@ function mapUser(dto: AdminUserDto): User {
     email: dto.email,
     role: dto.role as User["role"],
     title: dto.title,
+    department: dto.department,
+    officeLocation: dto.officeLocation,
+    profilePhotoUrl: dto.profilePhotoUrl,
     teamIds: dto.teamId ? [dto.teamId] : [],
     avatarColor: avatarColorFor(dto.id),
     status: dto.isActive ? "active" : "inactive",
+    managerId: dto.managerUserId ?? undefined,
   };
 }
 
@@ -526,7 +557,20 @@ async function getAdminSummarySafe() {
     return {
       organization: { id: fallbackOrganization.id, name: fallbackOrganization.name, slug: fallbackOrganization.branding, domain: "", defaultCadence: fallbackOrganization.cadence },
       teams: fallbackTeams.map((team) => ({ id: team.id, name: team.name, department: team.department, managerId: team.managerId, memberCount: team.memberIds.length })),
-      users: fallbackUsers.map((user) => ({ id: user.id, fullName: user.name, email: user.email, role: user.role, title: user.title, teamId: user.teamIds[0], isActive: user.status === "active" })),
+      users: fallbackUsers.map((user) => ({
+        id: user.id,
+        fullName: user.name,
+        email: user.email,
+        role: user.role,
+        title: user.title,
+        teamId: user.teamIds[0],
+        isActive: user.status === "active",
+        department: user.teamIds[0] ? fallbackTeams.find((team) => team.id === user.teamIds[0])?.department ?? "" : "",
+        officeLocation: "",
+        managerUserId: user.managerId ?? null,
+        profilePhotoUrl: "",
+        lastDirectorySyncAtUtc: null,
+      })),
       invitations: fallbackInvitations.map((invite) => ({ id: invite.id, email: invite.email, role: invite.role, teamId: invite.teamId ?? "", expiresAtUtc: new Date().toISOString(), acceptedAtUtc: invite.status === "accepted" ? new Date().toISOString() : null })),
       templates: fallbackTemplates.map((template) => ({ id: template.id, name: template.name, templateType: "MSR", requiredSectionsJson: JSON.stringify(template.requiredSections), promptQuestionsJson: JSON.stringify(template.questionPrompts), defaultBoardColumnsJson: "[]", brandingJson: JSON.stringify({ branding: template.branding }) })),
       auditLogs: fallbackAuditLogs.map((audit) => ({ id: audit.id, action: audit.action, entityName: audit.target, entityId: audit.targetId, details: audit.details, createdAtUtc: audit.createdAt, correlationId: audit.actorId })),
@@ -865,6 +909,7 @@ async function getEnterpriseSettingsData(organizationId: string) {
       notificationRoutes: [],
       exportDestinations: [],
       calendarSyncSettings: [],
+      profileSyncSettings: [],
     } satisfies OrganizationEnterpriseSettingsDto;
   }
 }

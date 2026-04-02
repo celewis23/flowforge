@@ -14,7 +14,11 @@ public record UserProfileDto(
     string Email,
     string Role,
     Guid OrganizationId,
-    Guid? TeamId);
+    Guid? TeamId,
+    string Department,
+    string OfficeLocation,
+    Guid? ManagerUserId,
+    string ProfilePhotoUrl);
 
 public record OrganizationSummaryDto(Guid Id, string Name, string Slug, string Domain, string DefaultCadence);
 
@@ -124,7 +128,12 @@ public record AdminUserDto(
     string Role,
     string Title,
     Guid? TeamId,
-    bool IsActive);
+    bool IsActive,
+    string Department,
+    string OfficeLocation,
+    Guid? ManagerUserId,
+    string ProfilePhotoUrl,
+    DateTime? LastDirectorySyncAtUtc);
 
 public record InvitationDto(
     Guid Id,
@@ -281,6 +290,19 @@ public record OrganizationCalendarSyncSettingDto(
     DateTime? LastSyncedAtUtc,
     string LastSyncError);
 
+public record OrganizationProfileSyncSettingDto(
+    Guid Id,
+    Guid OrganizationId,
+    Guid IntegrationConnectionId,
+    bool IsEnabled,
+    bool SyncJobTitles,
+    bool SyncDepartments,
+    bool SyncManagerHierarchy,
+    bool SyncOfficeLocation,
+    bool SyncProfilePhotos,
+    DateTime? LastSyncedAtUtc,
+    string LastSyncError);
+
 public record OrganizationEnterpriseSettingsDto(
     OrganizationAuthenticationSettingsDto Authentication,
     IReadOnlyCollection<OrganizationIdentityProviderDto> IdentityProviders,
@@ -291,7 +313,8 @@ public record OrganizationEnterpriseSettingsDto(
     IReadOnlyCollection<OrganizationDirectoryGroupMappingDto> DirectoryGroupMappings,
     IReadOnlyCollection<OrganizationNotificationRouteDto> NotificationRoutes,
     IReadOnlyCollection<OrganizationExportDestinationDto> ExportDestinations,
-    IReadOnlyCollection<OrganizationCalendarSyncSettingDto> CalendarSyncSettings);
+    IReadOnlyCollection<OrganizationCalendarSyncSettingDto> CalendarSyncSettings,
+    IReadOnlyCollection<OrganizationProfileSyncSettingDto> ProfileSyncSettings);
 
 public record EnterpriseIdentityProviderOptionDto(
     Guid IdentityProviderId,

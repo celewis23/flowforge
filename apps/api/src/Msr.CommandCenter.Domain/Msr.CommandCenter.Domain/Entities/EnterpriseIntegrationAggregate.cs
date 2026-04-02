@@ -161,6 +161,21 @@ public class OrganizationCalendarSyncSetting : TenantEntity
     public Team? Team { get; set; }
 }
 
+public class OrganizationProfileSyncSetting : TenantEntity
+{
+    public Guid IntegrationConnectionId { get; set; }
+    public bool IsEnabled { get; set; } = true;
+    public bool SyncJobTitles { get; set; } = true;
+    public bool SyncDepartments { get; set; } = true;
+    public bool SyncManagerHierarchy { get; set; } = true;
+    public bool SyncOfficeLocation { get; set; }
+    public bool SyncProfilePhotos { get; set; }
+    public DateTime? LastSyncedAtUtc { get; set; }
+    public string LastSyncError { get; set; } = string.Empty;
+    public Organization? Organization { get; set; }
+    public OrganizationIntegrationConnection? IntegrationConnection { get; set; }
+}
+
 public class ExternalIdentityLink : TenantEntity
 {
     public Guid UserId { get; set; }

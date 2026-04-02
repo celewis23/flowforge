@@ -316,6 +316,59 @@ public class OrganizationServiceTests
         Assert.True(result.IsEnabled);
     }
 
+    [Fact]
+    public async Task UpsertProfileSyncSettingAsync_CreatesDirectoryProfilePolicy()
+    {
+        await using var dbContext = CreateDbContext();
+        var organizationId = Guid.NewGuid();
+        var integrationId = Guid.NewGuid();
+
+        dbContext.Organizations.Add(new Organization
+        {
+            Id = organizationId,
+            Name = "FlowForge Transit",
+            Slug = "flowforge-transit",
+            Domain = "transit.example.com",
+            DefaultCadence = "Monthly"
+        });
+
+        dbContext.OrganizationIntegrationConnections.Add(new OrganizationIntegrationConnection
+        {
+            Id = integrationId,
+            OrganizationId = organizationId,
+            Name = "Transit Microsoft 365",
+            ProviderType = IntegrationProviderType.Microsoft365,
+            ClientId = "client-id",
+            ClientSecretReference = "secret-ref",
+            TenantIdentifier = "tenant-id",
+            Status = IntegrationConnectionStatus.Active
+        });
+
+        await dbContext.SaveChangesAsync();
+
+        var service = new OrganizationService(dbContext);
+        var result = await service.UpsertProfileSyncSettingAsync(
+            organizationId,
+            new UpsertOrganizationProfileSyncSettingRequest(
+                null,
+                integrationId,
+                true,
+                true,
+                true,
+                true,
+                false,
+                true),
+            CancellationToken.None);
+
+        Assert.Equal(integrationId, result.IntegrationConnectionId);
+        Assert.True(result.IsEnabled);
+        Assert.True(result.SyncJobTitles);
+        Assert.True(result.SyncDepartments);
+        Assert.True(result.SyncManagerHierarchy);
+        Assert.False(result.SyncOfficeLocation);
+        Assert.True(result.SyncProfilePhotos);
+    }
+
     private static MsrCommandCenterDbContext CreateDbContext()
     {
         var options = new DbContextOptionsBuilder<MsrCommandCenterDbContext>()

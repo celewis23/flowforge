@@ -216,7 +216,17 @@ public class AuthService : IAuthService
         return new AuthResponseDto(
             new JwtSecurityTokenHandler().WriteToken(jwt),
             expiresAtUtc,
-            new UserProfileDto(user.Id, user.FullName, user.Email ?? string.Empty, roles.FirstOrDefault() ?? nameof(PlatformRole.TeamMember), user.OrganizationId, user.DefaultTeamId),
+            new UserProfileDto(
+                user.Id,
+                user.FullName,
+                user.Email ?? string.Empty,
+                roles.FirstOrDefault() ?? nameof(PlatformRole.TeamMember),
+                user.OrganizationId,
+                user.DefaultTeamId,
+                user.Department,
+                user.OfficeLocation,
+                user.ManagerUserId,
+                user.ProfilePhotoUrl),
             organization.Slug);
     }
 

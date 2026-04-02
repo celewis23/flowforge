@@ -159,6 +159,16 @@ public record UpsertOrganizationCalendarSyncSettingRequest(
     bool SyncAllTeams,
     Guid? TeamId);
 
+public record UpsertOrganizationProfileSyncSettingRequest(
+    Guid? ProfileSyncSettingId,
+    Guid IntegrationConnectionId,
+    bool IsEnabled,
+    bool SyncJobTitles,
+    bool SyncDepartments,
+    bool SyncManagerHierarchy,
+    bool SyncOfficeLocation,
+    bool SyncProfilePhotos);
+
 public record TriggerOrganizationProvisioningJobRequest(
     string TriggeredBy,
     string Summary);

@@ -125,6 +125,11 @@ public class OrganizationService : IOrganizationService
             .ThenBy(x => x.EventType)
             .ThenBy(x => x.CalendarLabel)
             .ToListAsync(cancellationToken);
+        var profileSyncSettings = await _dbContext.OrganizationProfileSyncSettings
+            .Where(x => x.OrganizationId == organizationId)
+            .OrderByDescending(x => x.IsEnabled)
+            .ThenBy(x => x.CreatedAtUtc)
+            .ToListAsync(cancellationToken);
 
         return new OrganizationEnterpriseSettingsDto(
             MapAuthenticationSettings(auth),
@@ -136,7 +141,8 @@ public class OrganizationService : IOrganizationService
             directoryGroupMappings.Select(MapDirectoryGroupMapping).ToList(),
             notificationRoutes.Select(MapNotificationRoute).ToList(),
             exportDestinations.Select(MapExportDestination).ToList(),
-            calendarSyncSettings.Select(MapCalendarSyncSetting).ToList());
+            calendarSyncSettings.Select(MapCalendarSyncSetting).ToList(),
+            profileSyncSettings.Select(MapProfileSyncSetting).ToList());
     }
 
     public async Task<OrganizationAuthenticationSettingsDto> UpdateAuthenticationSettingsAsync(Guid organizationId, UpdateOrganizationAuthenticationSettingsRequest request, CancellationToken cancellationToken)
@@ -688,6 +694,55 @@ public class OrganizationService : IOrganizationService
         return MapCalendarSyncSetting(setting);
     }
 
+    public async Task<OrganizationProfileSyncSettingDto> UpsertProfileSyncSettingAsync(Guid organizationId, UpsertOrganizationProfileSyncSettingRequest request, CancellationToken cancellationToken)
+    {
+        var integration = await _dbContext.OrganizationIntegrationConnections
+            .Where(x => x.OrganizationId == organizationId && x.Id == request.IntegrationConnectionId)
+            .SingleOrDefaultAsync(cancellationToken)
+            ?? throw new InvalidOperationException("The selected integration connection does not belong to this organization.");
+
+        if (integration.ProviderType == IntegrationProviderType.Slack)
+        {
+            throw new InvalidOperationException("Slack integrations cannot be used for directory profile sync.");
+        }
+
+        OrganizationProfileSyncSetting setting;
+        if (request.ProfileSyncSettingId.HasValue)
+        {
+            setting = await _dbContext.OrganizationProfileSyncSettings
+                .Where(x => x.OrganizationId == organizationId && x.Id == request.ProfileSyncSettingId.Value)
+                .SingleAsync(cancellationToken);
+        }
+        else
+        {
+            setting = new OrganizationProfileSyncSetting
+            {
+                OrganizationId = organizationId
+            };
+            _dbContext.OrganizationProfileSyncSettings.Add(setting);
+        }
+
+        setting.IntegrationConnectionId = integration.Id;
+        setting.IsEnabled = request.IsEnabled;
+        setting.SyncJobTitles = request.SyncJobTitles;
+        setting.SyncDepartments = request.SyncDepartments;
+        setting.SyncManagerHierarchy = request.SyncManagerHierarchy;
+        setting.SyncOfficeLocation = request.SyncOfficeLocation;
+        setting.SyncProfilePhotos = request.SyncProfilePhotos;
+        setting.LastSyncError = string.Empty;
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        await WriteEnterpriseAuditAsync(
+            organizationId,
+            "ProfileSyncSettingUpserted",
+            "OrganizationProfileSyncSetting",
+            setting.Id.ToString(),
+            $"Configured profile sync settings via {integration.Name}.",
+            cancellationToken);
+
+        return MapProfileSyncSetting(setting);
+    }
+
     private async Task<OrganizationAuthenticationSettings> EnsureAuthenticationSettingsAsync(Guid organizationId, CancellationToken cancellationToken)
     {
         var settings = await _dbContext.OrganizationAuthenticationSettings
@@ -901,6 +956,20 @@ public class OrganizationService : IOrganizationService
             setting.IsEnabled,
             setting.SyncAllTeams,
             setting.TeamId,
+            setting.LastSyncedAtUtc,
+            setting.LastSyncError);
+
+    private static OrganizationProfileSyncSettingDto MapProfileSyncSetting(OrganizationProfileSyncSetting setting) =>
+        new(
+            setting.Id,
+            setting.OrganizationId,
+            setting.IntegrationConnectionId,
+            setting.IsEnabled,
+            setting.SyncJobTitles,
+            setting.SyncDepartments,
+            setting.SyncManagerHierarchy,
+            setting.SyncOfficeLocation,
+            setting.SyncProfilePhotos,
             setting.LastSyncedAtUtc,
             setting.LastSyncError);
 

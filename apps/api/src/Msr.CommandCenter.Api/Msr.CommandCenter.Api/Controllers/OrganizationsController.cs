@@ -103,4 +103,9 @@ public class OrganizationsController : ControllerBase
     [Authorize(Roles = "OrgAdmin,PlatformAdmin")]
     public Task<OrganizationCalendarSyncSettingDto> UpsertCalendarSyncSetting(Guid organizationId, UpsertOrganizationCalendarSyncSettingRequest request, CancellationToken cancellationToken) =>
         _organizationService.UpsertCalendarSyncSettingAsync(organizationId, request, cancellationToken);
+
+    [HttpPost("{organizationId:guid}/enterprise-settings/profile-sync")]
+    [Authorize(Roles = "OrgAdmin,PlatformAdmin")]
+    public Task<OrganizationProfileSyncSettingDto> UpsertProfileSyncSetting(Guid organizationId, UpsertOrganizationProfileSyncSettingRequest request, CancellationToken cancellationToken) =>
+        _organizationService.UpsertProfileSyncSettingAsync(organizationId, request, cancellationToken);
 }

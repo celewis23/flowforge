@@ -47,6 +47,7 @@ public class MsrCommandCenterDbContext : IdentityDbContext<ApplicationUser, Iden
     public DbSet<OrganizationNotificationRoute> OrganizationNotificationRoutes => Set<OrganizationNotificationRoute>();
     public DbSet<OrganizationExportDestination> OrganizationExportDestinations => Set<OrganizationExportDestination>();
     public DbSet<OrganizationCalendarSyncSetting> OrganizationCalendarSyncSettings => Set<OrganizationCalendarSyncSetting>();
+    public DbSet<OrganizationProfileSyncSetting> OrganizationProfileSyncSettings => Set<OrganizationProfileSyncSetting>();
     public DbSet<ExternalIdentityLink> ExternalIdentityLinks => Set<ExternalIdentityLink>();
     public DbSet<EnterpriseAuthSession> EnterpriseAuthSessions => Set<EnterpriseAuthSession>();
 
@@ -70,6 +71,7 @@ public class MsrCommandCenterDbContext : IdentityDbContext<ApplicationUser, Iden
         builder.Entity<Organization>().HasIndex(x => x.Slug).IsUnique();
         builder.Entity<ApplicationUser>().HasIndex(x => new { x.OrganizationId, x.Email });
         builder.Entity<ApplicationUser>().Property(x => x.ExternalEmployeeId).HasMaxLength(200);
+        builder.Entity<ApplicationUser>().HasIndex(x => new { x.OrganizationId, x.ManagerUserId });
         builder.Entity<TeamMembership>().HasIndex(x => new { x.TeamId, x.UserId }).IsUnique();
         builder.Entity<ProjectMembership>().HasIndex(x => new { x.ProjectId, x.UserId }).IsUnique();
         builder.Entity<Board>().HasIndex(x => new { x.OrganizationId, x.OwnerId, x.Name });
@@ -94,6 +96,7 @@ public class MsrCommandCenterDbContext : IdentityDbContext<ApplicationUser, Iden
         builder.Entity<OrganizationNotificationRoute>().HasIndex(x => new { x.OrganizationId, x.IntegrationConnectionId, x.NotificationType, x.DestinationReference }).IsUnique();
         builder.Entity<OrganizationExportDestination>().HasIndex(x => new { x.OrganizationId, x.IntegrationConnectionId, x.Name }).IsUnique();
         builder.Entity<OrganizationCalendarSyncSetting>().HasIndex(x => new { x.OrganizationId, x.IntegrationConnectionId, x.EventType, x.CalendarReference, x.TeamId }).IsUnique();
+        builder.Entity<OrganizationProfileSyncSetting>().HasIndex(x => new { x.OrganizationId, x.IntegrationConnectionId }).IsUnique();
         builder.Entity<ExternalIdentityLink>().HasIndex(x => new { x.OrganizationId, x.ProviderType, x.ExternalSubject }).IsUnique();
         builder.Entity<ExternalIdentityLink>().HasIndex(x => new { x.OrganizationId, x.UserId, x.ProviderType }).IsUnique();
         builder.Entity<EnterpriseAuthSession>().HasIndex(x => x.StateToken).IsUnique();
@@ -160,6 +163,12 @@ public class MsrCommandCenterDbContext : IdentityDbContext<ApplicationUser, Iden
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.Entity<Organization>()
+            .HasMany(x => x.ProfileSyncSettings)
+            .WithOne(x => x.Organization)
+            .HasForeignKey(x => x.OrganizationId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<Organization>()
             .HasMany(x => x.ExternalIdentityLinks)
             .WithOne(x => x.Organization)
             .HasForeignKey(x => x.OrganizationId)
@@ -206,6 +215,12 @@ public class MsrCommandCenterDbContext : IdentityDbContext<ApplicationUser, Iden
             .WithMany(x => x.CalendarSyncSettings)
             .HasForeignKey(x => x.TeamId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        builder.Entity<OrganizationProfileSyncSetting>()
+            .HasOne(x => x.IntegrationConnection)
+            .WithMany()
+            .HasForeignKey(x => x.IntegrationConnectionId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.Entity<Board>()
             .HasMany(x => x.Columns)

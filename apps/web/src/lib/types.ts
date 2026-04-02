@@ -24,6 +24,9 @@ export interface User {
   email: string;
   role: Role;
   title: string;
+  department?: string;
+  officeLocation?: string;
+  profilePhotoUrl?: string;
   teamIds: string[];
   avatarColor: string;
   status: "active" | "invited" | "inactive";

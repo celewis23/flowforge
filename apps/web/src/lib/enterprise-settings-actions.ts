@@ -375,3 +375,37 @@ export async function updateCalendarSyncSettingAction(formData: FormData) {
 
   revalidatePath("/organization-settings");
 }
+
+export async function createProfileSyncSettingAction(formData: FormData) {
+  const organizationId = String(formData.get("organizationId") ?? "");
+
+  await apiMutation(`/api/organizations/${organizationId}/enterprise-settings/profile-sync`, "POST", {
+    profileSyncSettingId: null,
+    integrationConnectionId: String(formData.get("integrationConnectionId") ?? ""),
+    isEnabled: formData.get("isEnabled") === "on",
+    syncJobTitles: formData.get("syncJobTitles") === "on",
+    syncDepartments: formData.get("syncDepartments") === "on",
+    syncManagerHierarchy: formData.get("syncManagerHierarchy") === "on",
+    syncOfficeLocation: formData.get("syncOfficeLocation") === "on",
+    syncProfilePhotos: formData.get("syncProfilePhotos") === "on",
+  });
+
+  revalidatePath("/organization-settings");
+}
+
+export async function updateProfileSyncSettingAction(formData: FormData) {
+  const organizationId = String(formData.get("organizationId") ?? "");
+
+  await apiMutation(`/api/organizations/${organizationId}/enterprise-settings/profile-sync`, "POST", {
+    profileSyncSettingId: String(formData.get("profileSyncSettingId") ?? ""),
+    integrationConnectionId: String(formData.get("integrationConnectionId") ?? ""),
+    isEnabled: formData.get("isEnabled") === "true" || formData.get("isEnabled") === "on",
+    syncJobTitles: formData.get("syncJobTitles") === "true" || formData.get("syncJobTitles") === "on",
+    syncDepartments: formData.get("syncDepartments") === "true" || formData.get("syncDepartments") === "on",
+    syncManagerHierarchy: formData.get("syncManagerHierarchy") === "true" || formData.get("syncManagerHierarchy") === "on",
+    syncOfficeLocation: formData.get("syncOfficeLocation") === "true" || formData.get("syncOfficeLocation") === "on",
+    syncProfilePhotos: formData.get("syncProfilePhotos") === "true" || formData.get("syncProfilePhotos") === "on",
+  });
+
+  revalidatePath("/organization-settings");
+}

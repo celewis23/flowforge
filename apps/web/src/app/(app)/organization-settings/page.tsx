@@ -8,6 +8,7 @@ import {
   createDirectoryGroupMappingAction,
   createCalendarSyncSettingAction,
   createExportDestinationAction,
+  createProfileSyncSettingAction,
   createNotificationRouteAction,
   createVerifiedDomainAction,
   createIdentityProviderAction,
@@ -17,6 +18,7 @@ import {
   updateDirectoryGroupMappingAction,
   updateEnterpriseAuthSettingsAction,
   updateExportDestinationAction,
+  updateProfileSyncSettingAction,
   updateIdentityProviderStateAction,
   updateIntegrationConnectionStateAction,
   updateNotificationRouteAction,
@@ -128,6 +130,157 @@ export default async function OrganizationSettingsPage() {
             </label>
             <div className="lg:col-span-2">
               <Button type="submit">Save enterprise auth policy</Button>
+            </div>
+          </form>
+        </CardBody>
+      </Card>
+      <Card>
+        <CardHeader>
+          <div className="space-y-2">
+            <h2 className="text-lg font-semibold">Profile and org-chart sync</h2>
+            <p className="text-sm text-muted-foreground">Keep titles, departments, manager relationships, office locations, and profile photos aligned with Microsoft Graph or Google Directory.</p>
+          </div>
+        </CardHeader>
+        <CardBody className="space-y-5">
+          {data.enterprise.profileSyncSettings.length > 0 ? (
+            <div className="space-y-3">
+              {data.enterprise.profileSyncSettings.map((setting) => {
+                const integration = data.enterprise.integrations.find((item) => item.id === setting.integrationConnectionId);
+
+                return (
+                  <div key={setting.id} className="rounded-[0.8rem] border border-border bg-surface p-4">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="space-y-1">
+                        <p className="font-medium">{integration?.name ?? "Unknown integration"}</p>
+                        <p className="text-sm text-muted-foreground">Directory profile enrichment settings</p>
+                      </div>
+                      <Badge variant={setting.isEnabled ? "success" : "neutral"}>{setting.isEnabled ? "Enabled" : "Paused"}</Badge>
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {setting.syncJobTitles ? <Badge variant="accent">Titles</Badge> : null}
+                      {setting.syncDepartments ? <Badge variant="accent">Departments</Badge> : null}
+                      {setting.syncManagerHierarchy ? <Badge variant="accent">Managers</Badge> : null}
+                      {setting.syncOfficeLocation ? <Badge variant="accent">Locations</Badge> : null}
+                      {setting.syncProfilePhotos ? <Badge variant="accent">Photos</Badge> : null}
+                    </div>
+                    {setting.lastSyncedAtUtc ? (
+                      <p className="mt-2 text-xs text-muted-foreground">Last synced {new Date(setting.lastSyncedAtUtc).toLocaleString()}</p>
+                    ) : null}
+                    {setting.lastSyncError ? <p className="mt-2 text-xs text-danger">{setting.lastSyncError}</p> : null}
+                    <details className="mt-3 rounded-[0.7rem] border border-border bg-surface-2 p-3">
+                      <summary className="cursor-pointer text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                        Edit profile sync
+                      </summary>
+                      <form action={updateProfileSyncSettingAction} className="mt-3 grid gap-3 lg:grid-cols-2">
+                        <input type="hidden" name="organizationId" value={data.organization.id} />
+                        <input type="hidden" name="profileSyncSettingId" value={setting.id} />
+                        <input type="hidden" name="isEnabled" value={setting.isEnabled ? "true" : "false"} />
+                        <input type="hidden" name="syncJobTitles" value={setting.syncJobTitles ? "true" : "false"} />
+                        <input type="hidden" name="syncDepartments" value={setting.syncDepartments ? "true" : "false"} />
+                        <input type="hidden" name="syncManagerHierarchy" value={setting.syncManagerHierarchy ? "true" : "false"} />
+                        <input type="hidden" name="syncOfficeLocation" value={setting.syncOfficeLocation ? "true" : "false"} />
+                        <input type="hidden" name="syncProfilePhotos" value={setting.syncProfilePhotos ? "true" : "false"} />
+                        <div className="space-y-2 lg:col-span-2">
+                          <label className="text-xs font-medium" htmlFor={`profile-sync-integration-${setting.id}`}>
+                            Integration connection
+                          </label>
+                          <select
+                            id={`profile-sync-integration-${setting.id}`}
+                            name="integrationConnectionId"
+                            defaultValue={setting.integrationConnectionId}
+                            className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-foreground shadow-sm"
+                          >
+                            {data.enterprise.integrations
+                              .filter((integrationOption) => integrationOption.providerType !== "Slack")
+                              .map((integrationOption) => (
+                                <option key={integrationOption.id} value={integrationOption.id}>
+                                  {integrationOption.name}
+                                </option>
+                              ))}
+                          </select>
+                        </div>
+                        <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <input type="checkbox" name="isEnabled" className="h-4 w-4 rounded border-border" defaultChecked={setting.isEnabled} />
+                          Enable profile sync
+                        </label>
+                        <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <input type="checkbox" name="syncJobTitles" className="h-4 w-4 rounded border-border" defaultChecked={setting.syncJobTitles} />
+                          Sync job titles
+                        </label>
+                        <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <input type="checkbox" name="syncDepartments" className="h-4 w-4 rounded border-border" defaultChecked={setting.syncDepartments} />
+                          Sync departments
+                        </label>
+                        <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <input type="checkbox" name="syncManagerHierarchy" className="h-4 w-4 rounded border-border" defaultChecked={setting.syncManagerHierarchy} />
+                          Sync manager hierarchy
+                        </label>
+                        <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <input type="checkbox" name="syncOfficeLocation" className="h-4 w-4 rounded border-border" defaultChecked={setting.syncOfficeLocation} />
+                          Sync office locations
+                        </label>
+                        <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <input type="checkbox" name="syncProfilePhotos" className="h-4 w-4 rounded border-border" defaultChecked={setting.syncProfilePhotos} />
+                          Sync profile photos
+                        </label>
+                        <div className="lg:col-span-2">
+                          <Button type="submit" size="sm">Save profile sync settings</Button>
+                        </div>
+                      </form>
+                    </details>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="rounded-[0.7rem] border border-dashed border-border bg-surface p-4 text-sm text-muted-foreground">
+              No profile sync settings configured yet.
+            </div>
+          )}
+          <form action={createProfileSyncSettingAction} className="grid gap-4 rounded-[0.8rem] border border-border bg-surface p-4 lg:grid-cols-2">
+            <input type="hidden" name="organizationId" value={data.organization.id} />
+            <div className="space-y-2 lg:col-span-2">
+              <label className="text-sm font-medium" htmlFor="profile-sync-integration">
+                Integration connection
+              </label>
+              <select id="profile-sync-integration" name="integrationConnectionId" className="w-full rounded-xl border border-border bg-surface-2 px-4 py-3 text-sm text-foreground shadow-sm">
+                {data.enterprise.integrations
+                  .filter((integration) => integration.providerType !== "Slack")
+                  .map((integration) => (
+                    <option key={integration.id} value={integration.id}>
+                      {integration.name}
+                    </option>
+                  ))}
+              </select>
+            </div>
+            <label className="flex items-center gap-2 text-sm text-muted-foreground">
+              <input type="checkbox" name="isEnabled" className="h-4 w-4 rounded border-border" defaultChecked />
+              Enable profile sync
+            </label>
+            <label className="flex items-center gap-2 text-sm text-muted-foreground">
+              <input type="checkbox" name="syncJobTitles" className="h-4 w-4 rounded border-border" defaultChecked />
+              Sync job titles
+            </label>
+            <label className="flex items-center gap-2 text-sm text-muted-foreground">
+              <input type="checkbox" name="syncDepartments" className="h-4 w-4 rounded border-border" defaultChecked />
+              Sync departments
+            </label>
+            <label className="flex items-center gap-2 text-sm text-muted-foreground">
+              <input type="checkbox" name="syncManagerHierarchy" className="h-4 w-4 rounded border-border" defaultChecked />
+              Sync manager hierarchy
+            </label>
+            <label className="flex items-center gap-2 text-sm text-muted-foreground">
+              <input type="checkbox" name="syncOfficeLocation" className="h-4 w-4 rounded border-border" />
+              Sync office locations
+            </label>
+            <label className="flex items-center gap-2 text-sm text-muted-foreground">
+              <input type="checkbox" name="syncProfilePhotos" className="h-4 w-4 rounded border-border" />
+              Sync profile photos
+            </label>
+            <div className="lg:col-span-2">
+              <Button type="submit" disabled={data.enterprise.integrations.filter((integration) => integration.providerType !== "Slack").length === 0}>
+                Add profile sync setting
+              </Button>
             </div>
           </form>
         </CardBody>

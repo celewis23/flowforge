@@ -39,7 +39,19 @@ public class AdminReadService : IAdminReadService
         foreach (var user in users)
         {
             var roles = await _userManager.GetRolesAsync(user);
-            userDtos.Add(new AdminUserDto(user.Id, user.FullName, user.Email ?? string.Empty, roles.FirstOrDefault() ?? "TeamMember", user.JobTitle, user.DefaultTeamId, user.IsActive));
+            userDtos.Add(new AdminUserDto(
+                user.Id,
+                user.FullName,
+                user.Email ?? string.Empty,
+                roles.FirstOrDefault() ?? "TeamMember",
+                user.JobTitle,
+                user.DefaultTeamId,
+                user.IsActive,
+                user.Department,
+                user.OfficeLocation,
+                user.ManagerUserId,
+                user.ProfilePhotoUrl,
+                user.LastDirectorySyncAtUtc));
         }
 
         var invitations = await _dbContext.OrganizationInvitations

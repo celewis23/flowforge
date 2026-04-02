@@ -11,18 +11,23 @@ export default async function TeamMembersPage() {
     <PageShell eyebrow="Team Members" title="People, roles, and ownership" description="See who owns what, who manages which team, and who is awaiting invitation.">
       <div className="grid gap-4 lg:grid-cols-2">
         {data.users.map((user) => (
-          <Card key={user.id}>
-            <CardBody className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <Avatar name={user.name} color={user.avatarColor} />
-                <div>
-                  <p className="font-semibold">{user.name}</p>
-                  <p className="text-sm text-muted-foreground">{user.title}</p>
+            <Card key={user.id}>
+              <CardBody className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <Avatar name={user.name} color={user.avatarColor} />
+                  <div>
+                    <p className="font-semibold">{user.name}</p>
+                    <p className="text-sm text-muted-foreground">{user.title}</p>
+                    {user.department || user.officeLocation ? (
+                      <p className="text-xs text-muted-foreground">
+                        {[user.department, user.officeLocation].filter(Boolean).join(" · ")}
+                      </p>
+                    ) : null}
+                  </div>
                 </div>
-              </div>
-              <div className="flex flex-wrap justify-end gap-2">
-                <Badge variant="accent">{user.role}</Badge>
-                <Badge variant={user.status === "active" ? "success" : "warning"}>{user.status}</Badge>
+                <div className="flex flex-wrap justify-end gap-2">
+                  <Badge variant="accent">{user.role}</Badge>
+                  <Badge variant={user.status === "active" ? "success" : "warning"}>{user.status}</Badge>
               </div>
             </CardBody>
           </Card>

@@ -27,6 +27,7 @@ public class Organization : BaseEntity
     public ICollection<OrganizationNotificationRoute> NotificationRoutes { get; set; } = new List<OrganizationNotificationRoute>();
     public ICollection<OrganizationExportDestination> ExportDestinations { get; set; } = new List<OrganizationExportDestination>();
     public ICollection<OrganizationCalendarSyncSetting> CalendarSyncSettings { get; set; } = new List<OrganizationCalendarSyncSetting>();
+    public ICollection<OrganizationProfileSyncSetting> ProfileSyncSettings { get; set; } = new List<OrganizationProfileSyncSetting>();
     public ICollection<ExternalIdentityLink> ExternalIdentityLinks { get; set; } = new List<ExternalIdentityLink>();
 }
 
