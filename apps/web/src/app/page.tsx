@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { BrandLogo } from "@/components/layout/brand-logo";
+import { PublicFooter } from "@/components/layout/public-footer";
 import { ButtonLink } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
@@ -18,14 +19,14 @@ export default async function Home() {
             <BrandLogo hero className="w-fit" />
             <div className="inline-flex flex-wrap items-center gap-2 rounded-[0.65rem] border border-border bg-surface px-3 py-2 text-sm shadow-soft">
               <Badge variant="accent">FlowForge platform</Badge>
-              <span>Boards, reporting, and team visibility in one product</span>
+              <span>Boards, reporting, and enterprise integrations in one operating system</span>
             </div>
             <div className="space-y-4">
               <h1 className="max-w-3xl text-[3rem] font-semibold leading-[1.1] tracking-tight text-foreground sm:text-[3.8rem] lg:text-[3.8rem]">
                 Workforce clarity, forged into a real operating dashboard.
               </h1>
               <p className="max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
-                FlowForge gives leaders and teams one place to manage boards, assignments, reporting cycles, MSRs, and executive-ready summaries without patching workflows together.
+                FlowForge gives leaders and teams one place to manage boards, assignments, reporting cycles, MSRs, and executive-ready summaries while fitting into Google Workspace and Microsoft environments already used across enterprise organizations.
               </p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
@@ -150,7 +151,7 @@ export default async function Home() {
         <section className="grid gap-4 py-10 lg:grid-cols-[0.95fr_1.05fr]">
           <Card>
             <CardHeader>
-              <h2 className="text-xl font-semibold">Built for managers and teams</h2>
+              <h2 className="text-xl font-semibold">Built for managers, teams, and enterprise IT</h2>
             </CardHeader>
             <CardBody className="space-y-4 text-sm leading-6 text-muted-foreground">
               <p>
@@ -160,6 +161,10 @@ export default async function Home() {
               <p>
                 The reporting engine compiles cards, activity entries, and manual notes into editable personal MSRs and final team
                 summaries.
+              </p>
+              <p>
+                Identity, directory sync, chat routing, export destinations, and calendar paths can plug into Google Workspace and
+                Microsoft setups instead of asking large organizations to start from scratch.
               </p>
             </CardBody>
           </Card>
@@ -175,6 +180,7 @@ export default async function Home() {
           </Card>
         </section>
       </div>
+      <PublicFooter />
     </main>
   );
 }
