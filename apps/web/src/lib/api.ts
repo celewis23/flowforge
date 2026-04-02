@@ -49,6 +49,52 @@ type AdminUserDto = { id: string; fullName: string; email: string; role: string;
 type InvitationDto = { id: string; email: string; role: string; teamId: string; expiresAtUtc: string; acceptedAtUtc?: string | null };
 type TemplateDto = { id: string; name: string; templateType: string; requiredSectionsJson: string; promptQuestionsJson: string; defaultBoardColumnsJson: string; brandingJson: string };
 type AdminSummaryDto = { organization: OrganizationSummaryDto; teams: TeamSummaryDto[]; users: AdminUserDto[]; invitations: InvitationDto[]; templates: TemplateDto[]; auditLogs: AuditLogDto[] };
+type OrganizationAuthenticationSettingsDto = {
+  id: string;
+  organizationId: string;
+  authenticationMode: string;
+  allowLocalPasswordSignIn: boolean;
+  requireMfaByDefault: boolean;
+  allowJustInTimeProvisioning: boolean;
+  enforceDomainVerification: boolean;
+  allowedDomains: string[];
+  defaultIdentityProviderId?: string | null;
+};
+type OrganizationIdentityProviderDto = {
+  id: string;
+  organizationId: string;
+  name: string;
+  providerType: string;
+  clientId: string;
+  authority: string;
+  metadataUrl: string;
+  tenantIdentifier: string;
+  scopes: string[];
+  domainHints: string[];
+  provisioningMode: string;
+  isEnabled: boolean;
+  isPrimary: boolean;
+  lastValidatedAtUtc?: string | null;
+  lastSyncAtUtc?: string | null;
+};
+type OrganizationIntegrationConnectionDto = {
+  id: string;
+  organizationId: string;
+  name: string;
+  providerType: string;
+  status: string;
+  clientId: string;
+  tenantIdentifier: string;
+  scopes: string[];
+  lastValidatedAtUtc?: string | null;
+  lastSyncAtUtc?: string | null;
+  lastError: string;
+};
+type OrganizationEnterpriseSettingsDto = {
+  authentication: OrganizationAuthenticationSettingsDto;
+  identityProviders: OrganizationIdentityProviderDto[];
+  integrations: OrganizationIntegrationConnectionDto[];
+};
 
 async function apiFetch<T>(path: string): Promise<T> {
   const token = await getAccessToken();
@@ -661,10 +707,12 @@ export async function getNotificationsData() {
 export async function getSettingsData() {
   const admin = await getAdminSummarySafe();
   const users = admin.users.map(mapUser);
+  const enterprise = await getEnterpriseSettingsData(admin.organization.id);
   return {
     currentUser: users[0] ?? fallbackUsers[0],
     organization: mapOrganization(admin.organization),
     teams: admin.teams.map((team) => mapTeam(team, users)),
+    enterprise,
     templates: admin.templates.map((template) => ({
       id: template.id,
       name: template.name,
@@ -674,6 +722,28 @@ export async function getSettingsData() {
       branding: template.brandingJson,
     })),
   };
+}
+
+async function getEnterpriseSettingsData(organizationId: string) {
+  try {
+    return await apiFetch<OrganizationEnterpriseSettingsDto>(`/api/organizations/${organizationId}/enterprise-settings`);
+  } catch {
+    return {
+      authentication: {
+        id: "enterprise-auth-fallback",
+        organizationId,
+        authenticationMode: "Mixed",
+        allowLocalPasswordSignIn: true,
+        requireMfaByDefault: false,
+        allowJustInTimeProvisioning: false,
+        enforceDomainVerification: false,
+        allowedDomains: [],
+        defaultIdentityProviderId: null,
+      },
+      identityProviders: [],
+      integrations: [],
+    } satisfies OrganizationEnterpriseSettingsDto;
+  }
 }
 
 export async function getAdminData() {
