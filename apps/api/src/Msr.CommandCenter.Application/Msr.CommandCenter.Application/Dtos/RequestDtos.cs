@@ -118,6 +118,16 @@ public record UpdateOrganizationProvisioningSettingsRequest(
     string ScimBaseUrl,
     string ScimSecretReference);
 
+public record UpsertOrganizationDirectoryGroupMappingRequest(
+    Guid? DirectoryGroupMappingId,
+    Guid IdentityProviderId,
+    Guid TeamId,
+    string ExternalGroupId,
+    string ExternalGroupName,
+    PlatformRole DefaultRole,
+    bool IsActive,
+    bool SyncMembers);
+
 public record TriggerOrganizationProvisioningJobRequest(
     string TriggeredBy,
     string Summary);

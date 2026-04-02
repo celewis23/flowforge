@@ -229,3 +229,37 @@ export async function triggerProvisioningJobAction(formData: FormData) {
 
   revalidatePath("/organization-settings");
 }
+
+export async function createDirectoryGroupMappingAction(formData: FormData) {
+  const organizationId = String(formData.get("organizationId") ?? "");
+
+  await apiMutation(`/api/organizations/${organizationId}/enterprise-settings/directory-group-mappings`, "POST", {
+    directoryGroupMappingId: null,
+    identityProviderId: String(formData.get("identityProviderId") ?? ""),
+    teamId: String(formData.get("teamId") ?? ""),
+    externalGroupId: String(formData.get("externalGroupId") ?? ""),
+    externalGroupName: String(formData.get("externalGroupName") ?? ""),
+    defaultRole: Number(formData.get("defaultRole") ?? 4),
+    isActive: formData.get("isActive") === "on",
+    syncMembers: formData.get("syncMembers") === "on",
+  });
+
+  revalidatePath("/organization-settings");
+}
+
+export async function updateDirectoryGroupMappingAction(formData: FormData) {
+  const organizationId = String(formData.get("organizationId") ?? "");
+
+  await apiMutation(`/api/organizations/${organizationId}/enterprise-settings/directory-group-mappings`, "POST", {
+    directoryGroupMappingId: String(formData.get("directoryGroupMappingId") ?? ""),
+    identityProviderId: String(formData.get("identityProviderId") ?? ""),
+    teamId: String(formData.get("teamId") ?? ""),
+    externalGroupId: String(formData.get("externalGroupId") ?? ""),
+    externalGroupName: String(formData.get("externalGroupName") ?? ""),
+    defaultRole: Number(formData.get("defaultRole") ?? 4),
+    isActive: formData.get("isActive") === "true" || formData.get("isActive") === "on",
+    syncMembers: formData.get("syncMembers") === "true" || formData.get("syncMembers") === "on",
+  });
+
+  revalidatePath("/organization-settings");
+}

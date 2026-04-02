@@ -89,6 +89,68 @@ public class OrganizationServiceTests
         Assert.NotNull(settings.LastSyncAtUtc);
     }
 
+    [Fact]
+    public async Task UpsertDirectoryGroupMappingAsync_CreatesTeamRoleMapping()
+    {
+        await using var dbContext = CreateDbContext();
+        var organizationId = Guid.NewGuid();
+        var providerId = Guid.NewGuid();
+        var teamId = Guid.NewGuid();
+
+        dbContext.Organizations.Add(new Organization
+        {
+            Id = organizationId,
+            Name = "FlowForge Manufacturing",
+            Slug = "flowforge-manufacturing",
+            Domain = "flowforge.example.com",
+            DefaultCadence = "Monthly"
+        });
+
+        dbContext.Teams.Add(new Team
+        {
+            Id = teamId,
+            OrganizationId = organizationId,
+            Name = "Assembly Operations",
+            Department = "Manufacturing",
+            ManagerId = Guid.NewGuid()
+        });
+
+        dbContext.OrganizationIdentityProviders.Add(new OrganizationIdentityProvider
+        {
+            Id = providerId,
+            OrganizationId = organizationId,
+            Name = "Contoso Entra ID",
+            ProviderType = IdentityProviderType.MicrosoftEntraId,
+            ClientId = "entra-client",
+            ClientSecretReference = "entra-secret",
+            Authority = "https://login.microsoftonline.com/tenant-id",
+            IsEnabled = true
+        });
+
+        await dbContext.SaveChangesAsync();
+
+        var service = new OrganizationService(dbContext);
+        var result = await service.UpsertDirectoryGroupMappingAsync(
+            organizationId,
+            new UpsertOrganizationDirectoryGroupMappingRequest(
+                null,
+                providerId,
+                teamId,
+                "group-001",
+                "Assembly Supervisors",
+                PlatformRole.Manager,
+                true,
+                true),
+            CancellationToken.None);
+
+        Assert.Equal("Assembly Supervisors", result.ExternalGroupName);
+        Assert.Equal(teamId, result.TeamId);
+        Assert.Equal(providerId, result.IdentityProviderId);
+        Assert.Equal("Manager", result.DefaultRole);
+        Assert.True(result.IsActive);
+        Assert.True(result.SyncMembers);
+    }
+
     private static MsrCommandCenterDbContext CreateDbContext()
     {
         var options = new DbContextOptionsBuilder<MsrCommandCenterDbContext>()

@@ -5,10 +5,12 @@ import { Input, Textarea } from "@/components/ui/input";
 import { PageShell } from "@/components/layout/page-shell";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
+  createDirectoryGroupMappingAction,
   createVerifiedDomainAction,
   createIdentityProviderAction,
   createIntegrationConnectionAction,
   triggerProvisioningJobAction,
+  updateDirectoryGroupMappingAction,
   updateEnterpriseAuthSettingsAction,
   updateIdentityProviderStateAction,
   updateIntegrationConnectionStateAction,
@@ -243,6 +245,204 @@ export default async function OrganizationSettingsPage() {
               </div>
             )}
           </div>
+        </CardBody>
+      </Card>
+      <Card>
+        <CardHeader>
+          <div className="space-y-2">
+            <h2 className="text-lg font-semibold">Directory group mappings</h2>
+            <p className="text-sm text-muted-foreground">Map Microsoft Entra ID or Google Workspace groups to FlowForge teams so provisioning can place users with the right default role.</p>
+          </div>
+        </CardHeader>
+        <CardBody className="space-y-5">
+          {data.enterprise.directoryGroupMappings.length > 0 ? (
+            <div className="space-y-3">
+              {data.enterprise.directoryGroupMappings.map((mapping) => {
+                const provider = data.enterprise.identityProviders.find((item) => item.id === mapping.identityProviderId);
+                const team = data.teams.find((item) => item.id === mapping.teamId);
+
+                return (
+                  <div key={mapping.id} className="rounded-[0.8rem] border border-border bg-surface p-4">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="space-y-1">
+                        <p className="font-medium">{mapping.externalGroupName}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {provider?.name ?? "Unknown provider"} to {team?.name ?? "Unknown team"} as {formatValue(mapping.defaultRole)}
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <Badge variant={mapping.isActive ? "success" : "neutral"}>{mapping.isActive ? "Active" : "Paused"}</Badge>
+                        <Badge variant={mapping.syncMembers ? "accent" : "neutral"}>{mapping.syncMembers ? "Sync members" : "Metadata only"}</Badge>
+                      </div>
+                    </div>
+                    <p className="mt-3 text-sm text-muted-foreground">External group ID: {mapping.externalGroupId}</p>
+                    {mapping.lastSyncedAtUtc ? (
+                      <p className="mt-2 text-xs text-muted-foreground">Last synced {new Date(mapping.lastSyncedAtUtc).toLocaleString()}</p>
+                    ) : null}
+                    {mapping.lastSyncError ? <p className="mt-2 text-xs text-danger">{mapping.lastSyncError}</p> : null}
+                    <details className="mt-3 rounded-[0.7rem] border border-border bg-surface-2 p-3">
+                      <summary className="cursor-pointer text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                        Edit mapping
+                      </summary>
+                      <form action={updateDirectoryGroupMappingAction} className="mt-3 grid gap-3 lg:grid-cols-2">
+                        <input type="hidden" name="organizationId" value={data.organization.id} />
+                        <input type="hidden" name="directoryGroupMappingId" value={mapping.id} />
+                        <input type="hidden" name="isActive" value={mapping.isActive ? "true" : "false"} />
+                        <input type="hidden" name="syncMembers" value={mapping.syncMembers ? "true" : "false"} />
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium" htmlFor={`group-provider-${mapping.id}`}>
+                            Identity provider
+                          </label>
+                          <select
+                            id={`group-provider-${mapping.id}`}
+                            name="identityProviderId"
+                            defaultValue={mapping.identityProviderId}
+                            className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-foreground shadow-sm"
+                          >
+                            {data.enterprise.identityProviders.map((providerOption) => (
+                              <option key={providerOption.id} value={providerOption.id}>
+                                {providerOption.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium" htmlFor={`group-team-${mapping.id}`}>
+                            FlowForge team
+                          </label>
+                          <select
+                            id={`group-team-${mapping.id}`}
+                            name="teamId"
+                            defaultValue={mapping.teamId}
+                            className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-foreground shadow-sm"
+                          >
+                            {data.teams.map((teamOption) => (
+                              <option key={teamOption.id} value={teamOption.id}>
+                                {teamOption.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium" htmlFor={`group-external-id-${mapping.id}`}>
+                            External group ID
+                          </label>
+                          <Input id={`group-external-id-${mapping.id}`} name="externalGroupId" defaultValue={mapping.externalGroupId} />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium" htmlFor={`group-name-${mapping.id}`}>
+                            External group name
+                          </label>
+                          <Input id={`group-name-${mapping.id}`} name="externalGroupName" defaultValue={mapping.externalGroupName} />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium" htmlFor={`group-role-${mapping.id}`}>
+                            Default role
+                          </label>
+                          <select
+                            id={`group-role-${mapping.id}`}
+                            name="defaultRole"
+                            defaultValue={toPlatformRoleValue(mapping.defaultRole)}
+                            className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-foreground shadow-sm"
+                          >
+                            <option value="2">Org admin</option>
+                            <option value="3">Manager</option>
+                            <option value="4">Team member</option>
+                            <option value="5">Executive viewer</option>
+                          </select>
+                        </div>
+                        <div className="flex flex-col justify-end gap-2 pb-1">
+                          <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <input type="checkbox" name="isActive" className="h-4 w-4 rounded border-border" defaultChecked={mapping.isActive} />
+                            Mapping active
+                          </label>
+                          <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <input type="checkbox" name="syncMembers" className="h-4 w-4 rounded border-border" defaultChecked={mapping.syncMembers} />
+                            Sync members into team
+                          </label>
+                        </div>
+                        <div className="lg:col-span-2">
+                          <Button type="submit" size="sm">Save mapping</Button>
+                        </div>
+                      </form>
+                    </details>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="rounded-[0.7rem] border border-dashed border-border bg-surface p-4 text-sm text-muted-foreground">
+              No directory group mappings configured yet.
+            </div>
+          )}
+          <form action={createDirectoryGroupMappingAction} className="grid gap-4 rounded-[0.8rem] border border-border bg-surface p-4 lg:grid-cols-2">
+            <input type="hidden" name="organizationId" value={data.organization.id} />
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="directory-provider">
+                Identity provider
+              </label>
+              <select id="directory-provider" name="identityProviderId" className="w-full rounded-xl border border-border bg-surface-2 px-4 py-3 text-sm text-foreground shadow-sm">
+                {data.enterprise.identityProviders.map((provider) => (
+                  <option key={provider.id} value={provider.id}>
+                    {provider.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="directory-team">
+                FlowForge team
+              </label>
+              <select id="directory-team" name="teamId" className="w-full rounded-xl border border-border bg-surface-2 px-4 py-3 text-sm text-foreground shadow-sm">
+                {data.teams.map((team) => (
+                  <option key={team.id} value={team.id}>
+                    {team.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="directory-externalGroupId">
+                External group ID
+              </label>
+              <Input id="directory-externalGroupId" name="externalGroupId" placeholder="group object ID or directory group key" />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="directory-externalGroupName">
+                External group name
+              </label>
+              <Input id="directory-externalGroupName" name="externalGroupName" placeholder="Field Operations Managers" />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="directory-defaultRole">
+                Default role
+              </label>
+              <select id="directory-defaultRole" name="defaultRole" defaultValue="4" className="w-full rounded-xl border border-border bg-surface-2 px-4 py-3 text-sm text-foreground shadow-sm">
+                <option value="2">Org admin</option>
+                <option value="3">Manager</option>
+                <option value="4">Team member</option>
+                <option value="5">Executive viewer</option>
+              </select>
+            </div>
+            <div className="flex flex-col justify-end gap-2 pb-1">
+              <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                <input type="checkbox" name="isActive" className="h-4 w-4 rounded border-border" defaultChecked />
+                Activate mapping
+              </label>
+              <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                <input type="checkbox" name="syncMembers" className="h-4 w-4 rounded border-border" defaultChecked />
+                Sync members into team
+              </label>
+            </div>
+            <div className="lg:col-span-2">
+              <Button type="submit" disabled={data.enterprise.identityProviders.length === 0 || data.teams.length === 0}>
+                Add directory group mapping
+              </Button>
+              {data.enterprise.identityProviders.length === 0 ? (
+                <p className="mt-2 text-sm text-muted-foreground">Add an identity provider before creating directory group mappings.</p>
+              ) : null}
+            </div>
+          </form>
         </CardBody>
       </Card>
       <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
@@ -938,5 +1138,18 @@ function toProvisioningSyncModeValue(value: string) {
       return "3";
     default:
       return "1";
+  }
+}
+
+function toPlatformRoleValue(value: string) {
+  switch (value) {
+    case "OrgAdmin":
+      return "2";
+    case "Manager":
+      return "3";
+    case "ExecutiveViewer":
+      return "5";
+    default:
+      return "4";
   }
 }

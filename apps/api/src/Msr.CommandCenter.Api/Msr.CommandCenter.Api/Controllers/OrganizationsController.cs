@@ -83,4 +83,9 @@ public class OrganizationsController : ControllerBase
     [Authorize(Roles = "OrgAdmin,PlatformAdmin")]
     public Task<OrganizationProvisioningJobDto> TriggerProvisioning(Guid organizationId, TriggerOrganizationProvisioningJobRequest request, CancellationToken cancellationToken) =>
         _organizationService.TriggerProvisioningJobAsync(organizationId, request, cancellationToken);
+
+    [HttpPost("{organizationId:guid}/enterprise-settings/directory-group-mappings")]
+    [Authorize(Roles = "OrgAdmin,PlatformAdmin")]
+    public Task<OrganizationDirectoryGroupMappingDto> UpsertDirectoryGroupMapping(Guid organizationId, UpsertOrganizationDirectoryGroupMappingRequest request, CancellationToken cancellationToken) =>
+        _organizationService.UpsertDirectoryGroupMappingAsync(organizationId, request, cancellationToken);
 }

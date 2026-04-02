@@ -23,6 +23,7 @@ public class Organization : BaseEntity
     public ICollection<OrganizationVerifiedDomain> VerifiedDomains { get; set; } = new List<OrganizationVerifiedDomain>();
     public OrganizationProvisioningSettings? ProvisioningSettings { get; set; }
     public ICollection<OrganizationProvisioningJob> ProvisioningJobs { get; set; } = new List<OrganizationProvisioningJob>();
+    public ICollection<OrganizationDirectoryGroupMapping> DirectoryGroupMappings { get; set; } = new List<OrganizationDirectoryGroupMapping>();
     public ICollection<ExternalIdentityLink> ExternalIdentityLinks { get; set; } = new List<ExternalIdentityLink>();
 }
 
@@ -34,6 +35,7 @@ public class Team : TenantEntity
     public Organization? Organization { get; set; }
     public ICollection<TeamMembership> Memberships { get; set; } = new List<TeamMembership>();
     public ICollection<ReportingCycle> ReportingCycles { get; set; } = new List<ReportingCycle>();
+    public ICollection<OrganizationDirectoryGroupMapping> DirectoryGroupMappings { get; set; } = new List<OrganizationDirectoryGroupMapping>();
 }
 
 public class TeamMembership : TenantEntity

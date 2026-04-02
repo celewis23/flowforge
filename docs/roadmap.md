@@ -29,6 +29,14 @@
 - projects and workstreams
 - aggregated manager board views
 
+## Phase 2A Enterprise Expansion
+
+- directory group-to-team mapping for Microsoft Entra ID and Google Workspace
+- provisioning-driven role assignment defaults
+- Teams / Google Chat notification delivery
+- SharePoint / Drive export destinations
+- Outlook / Google Calendar reporting-cycle sync
+
 ## Phase 3
 
 - reporting cycles

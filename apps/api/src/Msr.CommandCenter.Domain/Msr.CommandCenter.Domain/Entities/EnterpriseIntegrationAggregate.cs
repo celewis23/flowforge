@@ -96,6 +96,22 @@ public class OrganizationProvisioningJob : TenantEntity
     public Organization? Organization { get; set; }
 }
 
+public class OrganizationDirectoryGroupMapping : TenantEntity
+{
+    public Guid IdentityProviderId { get; set; }
+    public Guid TeamId { get; set; }
+    public string ExternalGroupId { get; set; } = string.Empty;
+    public string ExternalGroupName { get; set; } = string.Empty;
+    public PlatformRole DefaultRole { get; set; } = PlatformRole.TeamMember;
+    public bool IsActive { get; set; } = true;
+    public bool SyncMembers { get; set; } = true;
+    public DateTime? LastSyncedAtUtc { get; set; }
+    public string LastSyncError { get; set; } = string.Empty;
+    public Organization? Organization { get; set; }
+    public OrganizationIdentityProvider? IdentityProvider { get; set; }
+    public Team? Team { get; set; }
+}
+
 public class ExternalIdentityLink : TenantEntity
 {
     public Guid UserId { get; set; }

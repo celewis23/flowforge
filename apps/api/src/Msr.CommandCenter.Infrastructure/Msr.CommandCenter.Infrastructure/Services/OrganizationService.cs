@@ -102,6 +102,11 @@ public class OrganizationService : IOrganizationService
             .OrderByDescending(x => x.StartedAtUtc)
             .Take(10)
             .ToListAsync(cancellationToken);
+        var directoryGroupMappings = await _dbContext.OrganizationDirectoryGroupMappings
+            .Where(x => x.OrganizationId == organizationId)
+            .OrderByDescending(x => x.IsActive)
+            .ThenBy(x => x.ExternalGroupName)
+            .ToListAsync(cancellationToken);
 
         return new OrganizationEnterpriseSettingsDto(
             MapAuthenticationSettings(auth),
@@ -109,7 +114,8 @@ public class OrganizationService : IOrganizationService
             integrations.Select(MapIntegrationConnection).ToList(),
             verifiedDomains.Select(MapVerifiedDomain).ToList(),
             MapProvisioningSettings(provisioning),
-            provisioningJobs.Select(MapProvisioningJob).ToList());
+            provisioningJobs.Select(MapProvisioningJob).ToList(),
+            directoryGroupMappings.Select(MapDirectoryGroupMapping).ToList());
     }
 
     public async Task<OrganizationAuthenticationSettingsDto> UpdateAuthenticationSettingsAsync(Guid organizationId, UpdateOrganizationAuthenticationSettingsRequest request, CancellationToken cancellationToken)
@@ -364,6 +370,65 @@ public class OrganizationService : IOrganizationService
         return MapProvisioningJob(job);
     }
 
+    public async Task<OrganizationDirectoryGroupMappingDto> UpsertDirectoryGroupMappingAsync(Guid organizationId, UpsertOrganizationDirectoryGroupMappingRequest request, CancellationToken cancellationToken)
+    {
+        var identityProvider = await _dbContext.OrganizationIdentityProviders
+            .Where(x => x.OrganizationId == organizationId && x.Id == request.IdentityProviderId)
+            .SingleOrDefaultAsync(cancellationToken)
+            ?? throw new InvalidOperationException("The selected identity provider does not belong to this organization.");
+
+        var team = await _dbContext.Teams
+            .Where(x => x.OrganizationId == organizationId && x.Id == request.TeamId)
+            .SingleOrDefaultAsync(cancellationToken)
+            ?? throw new InvalidOperationException("The selected team does not belong to this organization.");
+
+        if (string.IsNullOrWhiteSpace(request.ExternalGroupId))
+        {
+            throw new InvalidOperationException("An external group ID is required.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.ExternalGroupName))
+        {
+            throw new InvalidOperationException("An external group name is required.");
+        }
+
+        OrganizationDirectoryGroupMapping mapping;
+        if (request.DirectoryGroupMappingId.HasValue)
+        {
+            mapping = await _dbContext.OrganizationDirectoryGroupMappings
+                .Where(x => x.OrganizationId == organizationId && x.Id == request.DirectoryGroupMappingId.Value)
+                .SingleAsync(cancellationToken);
+        }
+        else
+        {
+            mapping = new OrganizationDirectoryGroupMapping
+            {
+                OrganizationId = organizationId
+            };
+            _dbContext.OrganizationDirectoryGroupMappings.Add(mapping);
+        }
+
+        mapping.IdentityProviderId = identityProvider.Id;
+        mapping.TeamId = team.Id;
+        mapping.ExternalGroupId = request.ExternalGroupId.Trim();
+        mapping.ExternalGroupName = request.ExternalGroupName.Trim();
+        mapping.DefaultRole = request.DefaultRole;
+        mapping.IsActive = request.IsActive;
+        mapping.SyncMembers = request.SyncMembers;
+        mapping.LastSyncError = string.Empty;
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        await WriteEnterpriseAuditAsync(
+            organizationId,
+            "DirectoryGroupMappingUpserted",
+            "OrganizationDirectoryGroupMapping",
+            mapping.Id.ToString(),
+            $"Mapped {identityProvider.Name} group '{mapping.ExternalGroupName}' to team '{team.Name}' with default role {mapping.DefaultRole}.",
+            cancellationToken);
+
+        return MapDirectoryGroupMapping(mapping);
+    }
+
     private async Task<OrganizationAuthenticationSettings> EnsureAuthenticationSettingsAsync(Guid organizationId, CancellationToken cancellationToken)
     {
         var settings = await _dbContext.OrganizationAuthenticationSettings
@@ -520,6 +585,20 @@ public class OrganizationService : IOrganizationService
             job.ErrorDetails,
             job.StartedAtUtc,
             job.CompletedAtUtc);
+
+    private static OrganizationDirectoryGroupMappingDto MapDirectoryGroupMapping(OrganizationDirectoryGroupMapping mapping) =>
+        new(
+            mapping.Id,
+            mapping.OrganizationId,
+            mapping.IdentityProviderId,
+            mapping.TeamId,
+            mapping.ExternalGroupId,
+            mapping.ExternalGroupName,
+            mapping.DefaultRole.ToString(),
+            mapping.IsActive,
+            mapping.SyncMembers,
+            mapping.LastSyncedAtUtc,
+            mapping.LastSyncError);
 
     private static string GenerateChallengeToken() =>
         $"flowforge-verification={Convert.ToHexString(Guid.NewGuid().ToByteArray()).ToLowerInvariant()}";

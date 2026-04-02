@@ -226,13 +226,27 @@ public record OrganizationProvisioningJobDto(
     DateTime StartedAtUtc,
     DateTime? CompletedAtUtc);
 
+public record OrganizationDirectoryGroupMappingDto(
+    Guid Id,
+    Guid OrganizationId,
+    Guid IdentityProviderId,
+    Guid TeamId,
+    string ExternalGroupId,
+    string ExternalGroupName,
+    string DefaultRole,
+    bool IsActive,
+    bool SyncMembers,
+    DateTime? LastSyncedAtUtc,
+    string LastSyncError);
+
 public record OrganizationEnterpriseSettingsDto(
     OrganizationAuthenticationSettingsDto Authentication,
     IReadOnlyCollection<OrganizationIdentityProviderDto> IdentityProviders,
     IReadOnlyCollection<OrganizationIntegrationConnectionDto> Integrations,
     IReadOnlyCollection<OrganizationVerifiedDomainDto> VerifiedDomains,
     OrganizationProvisioningSettingsDto Provisioning,
-    IReadOnlyCollection<OrganizationProvisioningJobDto> ProvisioningJobs);
+    IReadOnlyCollection<OrganizationProvisioningJobDto> ProvisioningJobs,
+    IReadOnlyCollection<OrganizationDirectoryGroupMappingDto> DirectoryGroupMappings);
 
 public record EnterpriseIdentityProviderOptionDto(
     Guid IdentityProviderId,

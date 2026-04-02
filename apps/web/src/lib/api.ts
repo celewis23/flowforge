@@ -132,6 +132,19 @@ type OrganizationProvisioningJobDto = {
   startedAtUtc: string;
   completedAtUtc?: string | null;
 };
+type OrganizationDirectoryGroupMappingDto = {
+  id: string;
+  organizationId: string;
+  identityProviderId: string;
+  teamId: string;
+  externalGroupId: string;
+  externalGroupName: string;
+  defaultRole: string;
+  isActive: boolean;
+  syncMembers: boolean;
+  lastSyncedAtUtc?: string | null;
+  lastSyncError: string;
+};
 type OrganizationEnterpriseSettingsDto = {
   authentication: OrganizationAuthenticationSettingsDto;
   identityProviders: OrganizationIdentityProviderDto[];
@@ -139,6 +152,7 @@ type OrganizationEnterpriseSettingsDto = {
   verifiedDomains: OrganizationVerifiedDomainDto[];
   provisioning: OrganizationProvisioningSettingsDto;
   provisioningJobs: OrganizationProvisioningJobDto[];
+  directoryGroupMappings: OrganizationDirectoryGroupMappingDto[];
 };
 
 async function apiFetch<T>(path: string): Promise<T> {
@@ -802,6 +816,7 @@ async function getEnterpriseSettingsData(organizationId: string) {
         lastSyncError: "",
       },
       provisioningJobs: [],
+      directoryGroupMappings: [],
     } satisfies OrganizationEnterpriseSettingsDto;
   }
 }
