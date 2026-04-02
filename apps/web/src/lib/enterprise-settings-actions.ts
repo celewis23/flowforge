@@ -82,6 +82,37 @@ export async function createIdentityProviderAction(formData: FormData) {
   revalidatePath("/organization-settings");
 }
 
+export async function updateIdentityProviderStateAction(formData: FormData) {
+  const organizationId = String(formData.get("organizationId") ?? "");
+  const scopes = String(formData.get("scopes") ?? "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+  const domainHints = String(formData.get("domainHints") ?? "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  await apiMutation(`/api/organizations/${organizationId}/enterprise-settings/identity-providers`, "POST", {
+    identityProviderId: String(formData.get("identityProviderId") ?? ""),
+    name: String(formData.get("name") ?? ""),
+    providerType: Number(formData.get("providerType") ?? 1),
+    clientId: String(formData.get("clientId") ?? ""),
+    clientSecretReference: String(formData.get("clientSecretReference") ?? ""),
+    authority: String(formData.get("authority") ?? ""),
+    metadataUrl: String(formData.get("metadataUrl") ?? ""),
+    tenantIdentifier: String(formData.get("tenantIdentifier") ?? ""),
+    scopes,
+    domainHints,
+    roleMappingsJson: String(formData.get("roleMappingsJson") ?? "{}"),
+    provisioningMode: Number(formData.get("provisioningMode") ?? 1),
+    isEnabled: formData.get("isEnabled") === "true",
+    isPrimary: formData.get("isPrimary") === "true",
+  });
+
+  revalidatePath("/organization-settings");
+}
+
 export async function createIntegrationConnectionAction(formData: FormData) {
   const organizationId = String(formData.get("organizationId") ?? "");
   const scopes = String(formData.get("scopes") ?? "")
@@ -91,6 +122,28 @@ export async function createIntegrationConnectionAction(formData: FormData) {
 
   await apiMutation(`/api/organizations/${organizationId}/enterprise-settings/integrations`, "POST", {
     integrationConnectionId: null,
+    name: String(formData.get("name") ?? ""),
+    providerType: Number(formData.get("providerType") ?? 1),
+    clientId: String(formData.get("clientId") ?? ""),
+    clientSecretReference: String(formData.get("clientSecretReference") ?? ""),
+    tenantIdentifier: String(formData.get("tenantIdentifier") ?? ""),
+    scopes,
+    configurationJson: String(formData.get("configurationJson") ?? "{}"),
+    status: Number(formData.get("status") ?? 1),
+  });
+
+  revalidatePath("/organization-settings");
+}
+
+export async function updateIntegrationConnectionStateAction(formData: FormData) {
+  const organizationId = String(formData.get("organizationId") ?? "");
+  const scopes = String(formData.get("scopes") ?? "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  await apiMutation(`/api/organizations/${organizationId}/enterprise-settings/integrations`, "POST", {
+    integrationConnectionId: String(formData.get("integrationConnectionId") ?? ""),
     name: String(formData.get("name") ?? ""),
     providerType: Number(formData.get("providerType") ?? 1),
     clientId: String(formData.get("clientId") ?? ""),

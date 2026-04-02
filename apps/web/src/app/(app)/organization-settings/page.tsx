@@ -4,7 +4,13 @@ import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Input, Textarea } from "@/components/ui/input";
 import { PageShell } from "@/components/layout/page-shell";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { createIdentityProviderAction, createIntegrationConnectionAction, updateEnterpriseAuthSettingsAction } from "@/lib/enterprise-settings-actions";
+import {
+  createIdentityProviderAction,
+  createIntegrationConnectionAction,
+  updateEnterpriseAuthSettingsAction,
+  updateIdentityProviderStateAction,
+  updateIntegrationConnectionStateAction,
+} from "@/lib/enterprise-settings-actions";
 import { getSettingsData } from "@/lib/api";
 
 export default async function OrganizationSettingsPage() {
@@ -72,6 +78,24 @@ export default async function OrganizationSettingsPage() {
               </label>
               <Input id="allowedDomains" name="allowedDomains" defaultValue={data.enterprise.authentication.allowedDomains.join(", ")} placeholder="company.com, agency.gov" />
             </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="defaultIdentityProviderId">
+                Default identity provider
+              </label>
+              <select
+                id="defaultIdentityProviderId"
+                name="defaultIdentityProviderId"
+                defaultValue={data.enterprise.authentication.defaultIdentityProviderId ?? ""}
+                className="w-full rounded-xl border border-border bg-surface-2 px-4 py-3 text-sm text-foreground shadow-sm"
+              >
+                <option value="">None</option>
+                {data.enterprise.identityProviders.map((provider) => (
+                  <option key={provider.id} value={provider.id}>
+                    {provider.name}
+                  </option>
+                ))}
+              </select>
+            </div>
             <label className="flex items-center gap-2 text-sm text-muted-foreground">
               <input type="checkbox" name="allowLocalPasswordSignIn" className="h-4 w-4 rounded border-border" defaultChecked={data.enterprise.authentication.allowLocalPasswordSignIn} />
               Allow local password sign-in
@@ -128,6 +152,46 @@ export default async function OrganizationSettingsPage() {
                         <TableCell className="space-x-2">
                           {provider.isPrimary ? <Badge variant="accent">Primary</Badge> : null}
                           <Badge variant={provider.isEnabled ? "success" : "neutral"}>{provider.isEnabled ? "Enabled" : "Disabled"}</Badge>
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            <form action={updateIdentityProviderStateAction}>
+                              <input type="hidden" name="organizationId" value={data.organization.id} />
+                              <input type="hidden" name="identityProviderId" value={provider.id} />
+                              <input type="hidden" name="name" value={provider.name} />
+                              <input type="hidden" name="providerType" value={toProviderTypeValue(provider.providerType)} />
+                              <input type="hidden" name="clientId" value={provider.clientId} />
+                              <input type="hidden" name="clientSecretReference" value="" />
+                              <input type="hidden" name="authority" value={provider.authority} />
+                              <input type="hidden" name="metadataUrl" value={provider.metadataUrl} />
+                              <input type="hidden" name="tenantIdentifier" value={provider.tenantIdentifier} />
+                              <input type="hidden" name="scopes" value={provider.scopes.join(",")} />
+                              <input type="hidden" name="domainHints" value={provider.domainHints.join(",")} />
+                              <input type="hidden" name="roleMappingsJson" value="{}" />
+                              <input type="hidden" name="provisioningMode" value={toProvisioningModeValue(provider.provisioningMode)} />
+                              <input type="hidden" name="isEnabled" value={provider.isEnabled ? "false" : "true"} />
+                              <input type="hidden" name="isPrimary" value={provider.isPrimary ? "true" : "false"} />
+                              <Button type="submit" size="sm" variant="secondary">{provider.isEnabled ? "Disable" : "Enable"}</Button>
+                            </form>
+                            {!provider.isPrimary ? (
+                              <form action={updateIdentityProviderStateAction}>
+                                <input type="hidden" name="organizationId" value={data.organization.id} />
+                                <input type="hidden" name="identityProviderId" value={provider.id} />
+                                <input type="hidden" name="name" value={provider.name} />
+                                <input type="hidden" name="providerType" value={toProviderTypeValue(provider.providerType)} />
+                                <input type="hidden" name="clientId" value={provider.clientId} />
+                                <input type="hidden" name="clientSecretReference" value="" />
+                                <input type="hidden" name="authority" value={provider.authority} />
+                                <input type="hidden" name="metadataUrl" value={provider.metadataUrl} />
+                                <input type="hidden" name="tenantIdentifier" value={provider.tenantIdentifier} />
+                                <input type="hidden" name="scopes" value={provider.scopes.join(",")} />
+                                <input type="hidden" name="domainHints" value={provider.domainHints.join(",")} />
+                                <input type="hidden" name="roleMappingsJson" value="{}" />
+                                <input type="hidden" name="provisioningMode" value={toProvisioningModeValue(provider.provisioningMode)} />
+                                <input type="hidden" name="isEnabled" value={provider.isEnabled ? "true" : "false"} />
+                                <input type="hidden" name="isPrimary" value="true" />
+                                <Button type="submit" size="sm" variant="ghost">Make primary</Button>
+                              </form>
+                            ) : null}
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -252,6 +316,21 @@ export default async function OrganizationSettingsPage() {
                   <p className="mt-3 text-sm text-muted-foreground">
                     {integration.lastError || integration.tenantIdentifier || "No tenant or sync metadata available yet."}
                   </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <form action={updateIntegrationConnectionStateAction}>
+                      <input type="hidden" name="organizationId" value={data.organization.id} />
+                      <input type="hidden" name="integrationConnectionId" value={integration.id} />
+                      <input type="hidden" name="name" value={integration.name} />
+                      <input type="hidden" name="providerType" value={toIntegrationProviderValue(integration.providerType)} />
+                      <input type="hidden" name="clientId" value={integration.clientId} />
+                      <input type="hidden" name="clientSecretReference" value="" />
+                      <input type="hidden" name="tenantIdentifier" value={integration.tenantIdentifier} />
+                      <input type="hidden" name="scopes" value={integration.scopes.join(",")} />
+                      <input type="hidden" name="configurationJson" value="{}" />
+                      <input type="hidden" name="status" value={integration.status === "Active" ? "3" : "2"} />
+                      <Button type="submit" size="sm" variant="secondary">{integration.status === "Active" ? "Disable" : "Activate"}</Button>
+                    </form>
+                  </div>
                 </div>
               ))
             ) : (
@@ -360,5 +439,38 @@ function toAuthenticationModeValue(value: string) {
       return "3";
     default:
       return "2";
+  }
+}
+
+function toProviderTypeValue(value: string) {
+  switch (value) {
+    case "GoogleWorkspace":
+      return "2";
+    case "Saml":
+      return "3";
+    default:
+      return "1";
+  }
+}
+
+function toProvisioningModeValue(value: string) {
+  switch (value) {
+    case "JustInTime":
+      return "2";
+    case "Scim":
+      return "3";
+    default:
+      return "1";
+  }
+}
+
+function toIntegrationProviderValue(value: string) {
+  switch (value) {
+    case "GoogleWorkspace":
+      return "2";
+    case "Slack":
+      return "3";
+    default:
+      return "1";
   }
 }
