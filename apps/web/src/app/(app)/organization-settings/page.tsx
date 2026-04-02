@@ -5,11 +5,14 @@ import { Input, Textarea } from "@/components/ui/input";
 import { PageShell } from "@/components/layout/page-shell";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
+  createVerifiedDomainAction,
   createIdentityProviderAction,
   createIntegrationConnectionAction,
   updateEnterpriseAuthSettingsAction,
   updateIdentityProviderStateAction,
   updateIntegrationConnectionStateAction,
+  updateVerifiedDomainAction,
+  verifyDomainStateAction,
 } from "@/lib/enterprise-settings-actions";
 import { getSettingsData } from "@/lib/api";
 
@@ -593,6 +596,120 @@ export default async function OrganizationSettingsPage() {
           </CardBody>
         </Card>
       </div>
+      <Card>
+        <CardHeader>
+          <div className="space-y-2">
+            <h2 className="text-lg font-semibold">Verified domains</h2>
+            <p className="text-sm text-muted-foreground">Track the domains that are approved for enterprise sign-in and future directory provisioning.</p>
+          </div>
+        </CardHeader>
+        <CardBody className="space-y-3">
+          {data.enterprise.verifiedDomains.length > 0 ? (
+            data.enterprise.verifiedDomains.map((domain) => (
+              <div key={domain.id} className="rounded-[0.7rem] border border-border bg-surface p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="space-y-1">
+                    <p className="font-medium">{domain.domain}</p>
+                    <p className="text-sm text-muted-foreground">{formatValue(domain.verificationMethod)}</p>
+                  </div>
+                  <Badge variant={domain.status === "Verified" ? "success" : domain.status === "Failed" ? "danger" : "neutral"}>
+                    {formatValue(domain.status)}
+                  </Badge>
+                </div>
+                <div className="mt-3 rounded-[0.7rem] border border-border bg-surface-2 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Challenge token</p>
+                  <p className="mt-2 break-all font-mono text-sm text-foreground">{domain.challengeToken}</p>
+                </div>
+                {domain.failureReason ? <p className="mt-3 text-sm text-danger">{domain.failureReason}</p> : null}
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {domain.status !== "Verified" ? (
+                    <form action={verifyDomainStateAction}>
+                      <input type="hidden" name="organizationId" value={data.organization.id} />
+                      <input type="hidden" name="verifiedDomainId" value={domain.id} />
+                      <input type="hidden" name="verified" value="true" />
+                      <input type="hidden" name="failureReason" value="" />
+                      <Button type="submit" size="sm" variant="secondary">Mark verified</Button>
+                    </form>
+                  ) : null}
+                  <form action={verifyDomainStateAction}>
+                    <input type="hidden" name="organizationId" value={data.organization.id} />
+                    <input type="hidden" name="verifiedDomainId" value={domain.id} />
+                    <input type="hidden" name="verified" value="false" />
+                    <input type="hidden" name="failureReason" value="Verification check still pending." />
+                    <Button type="submit" size="sm" variant="ghost">Mark pending issue</Button>
+                  </form>
+                </div>
+                <details className="mt-3 rounded-[0.7rem] border border-border bg-surface-2 p-3">
+                  <summary className="cursor-pointer text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                    Edit domain
+                  </summary>
+                  <form action={updateVerifiedDomainAction} className="mt-3 grid gap-3 lg:grid-cols-2">
+                    <input type="hidden" name="organizationId" value={data.organization.id} />
+                    <input type="hidden" name="verifiedDomainId" value={domain.id} />
+                    <div className="space-y-2">
+                      <label className="text-xs font-medium" htmlFor={`domain-name-${domain.id}`}>
+                        Domain
+                      </label>
+                      <Input id={`domain-name-${domain.id}`} name="domain" defaultValue={domain.domain} />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-medium" htmlFor={`domain-method-${domain.id}`}>
+                        Verification method
+                      </label>
+                      <select
+                        id={`domain-method-${domain.id}`}
+                        name="verificationMethod"
+                        defaultValue={domain.verificationMethod}
+                        className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-foreground shadow-sm"
+                      >
+                        <option value="DnsTxt">DNS TXT</option>
+                        <option value="HtmlFile">HTML file</option>
+                        <option value="Email">Email</option>
+                      </select>
+                    </div>
+                    <div className="lg:col-span-2">
+                      <Button type="submit" size="sm">Save domain</Button>
+                    </div>
+                  </form>
+                </details>
+              </div>
+            ))
+          ) : (
+            <div className="rounded-[0.7rem] border border-dashed border-border bg-surface p-4 text-sm text-muted-foreground">
+              No verified domains have been configured yet.
+            </div>
+          )}
+        </CardBody>
+        <CardBody className="border-t border-border">
+          <form action={createVerifiedDomainAction} className="grid gap-4 lg:grid-cols-2">
+            <input type="hidden" name="organizationId" value={data.organization.id} />
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="verified-domain">
+                Domain
+              </label>
+              <Input id="verified-domain" name="domain" placeholder="company.com" />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="verified-domain-method">
+                Verification method
+              </label>
+              <select
+                id="verified-domain-method"
+                name="verificationMethod"
+                defaultValue="DnsTxt"
+                className="w-full rounded-xl border border-border bg-surface-2 px-4 py-3 text-sm text-foreground shadow-sm"
+              >
+                <option value="DnsTxt">DNS TXT</option>
+                <option value="HtmlFile">HTML file</option>
+                <option value="Email">Email</option>
+              </select>
+            </div>
+            <div className="lg:col-span-2">
+              <Button type="submit">Add verified domain</Button>
+            </div>
+          </form>
+        </CardBody>
+      </Card>
     </PageShell>
   );
 }

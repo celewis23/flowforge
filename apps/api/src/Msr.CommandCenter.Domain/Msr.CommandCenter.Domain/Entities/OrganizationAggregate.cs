@@ -20,6 +20,7 @@ public class Organization : BaseEntity
     public OrganizationAuthenticationSettings? AuthenticationSettings { get; set; }
     public ICollection<OrganizationIdentityProvider> IdentityProviders { get; set; } = new List<OrganizationIdentityProvider>();
     public ICollection<OrganizationIntegrationConnection> IntegrationConnections { get; set; } = new List<OrganizationIntegrationConnection>();
+    public ICollection<OrganizationVerifiedDomain> VerifiedDomains { get; set; } = new List<OrganizationVerifiedDomain>();
     public ICollection<ExternalIdentityLink> ExternalIdentityLinks { get; set; } = new List<ExternalIdentityLink>();
 }
 

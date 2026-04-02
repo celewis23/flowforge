@@ -58,4 +58,14 @@ public class OrganizationsController : ControllerBase
     [Authorize(Roles = "OrgAdmin,PlatformAdmin")]
     public Task<OrganizationIntegrationConnectionDto> UpsertIntegration(Guid organizationId, UpsertOrganizationIntegrationConnectionRequest request, CancellationToken cancellationToken) =>
         _organizationService.UpsertIntegrationConnectionAsync(organizationId, request, cancellationToken);
+
+    [HttpPost("{organizationId:guid}/enterprise-settings/domains")]
+    [Authorize(Roles = "OrgAdmin,PlatformAdmin")]
+    public Task<OrganizationVerifiedDomainDto> UpsertVerifiedDomain(Guid organizationId, UpsertOrganizationVerifiedDomainRequest request, CancellationToken cancellationToken) =>
+        _organizationService.UpsertVerifiedDomainAsync(organizationId, request, cancellationToken);
+
+    [HttpPost("{organizationId:guid}/enterprise-settings/domains/verify")]
+    [Authorize(Roles = "OrgAdmin,PlatformAdmin")]
+    public Task<OrganizationVerifiedDomainDto> VerifyDomain(Guid organizationId, VerifyOrganizationDomainRequest request, CancellationToken cancellationToken) =>
+        _organizationService.VerifyDomainAsync(organizationId, request, cancellationToken);
 }

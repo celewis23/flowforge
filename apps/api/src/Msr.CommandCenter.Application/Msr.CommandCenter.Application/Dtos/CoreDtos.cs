@@ -184,10 +184,22 @@ public record OrganizationIntegrationConnectionDto(
     DateTime? LastSyncAtUtc,
     string LastError);
 
+public record OrganizationVerifiedDomainDto(
+    Guid Id,
+    Guid OrganizationId,
+    string Domain,
+    string VerificationMethod,
+    string Status,
+    string ChallengeToken,
+    DateTime? VerifiedAtUtc,
+    DateTime? LastCheckedAtUtc,
+    string FailureReason);
+
 public record OrganizationEnterpriseSettingsDto(
     OrganizationAuthenticationSettingsDto Authentication,
     IReadOnlyCollection<OrganizationIdentityProviderDto> IdentityProviders,
-    IReadOnlyCollection<OrganizationIntegrationConnectionDto> Integrations);
+    IReadOnlyCollection<OrganizationIntegrationConnectionDto> Integrations,
+    IReadOnlyCollection<OrganizationVerifiedDomainDto> VerifiedDomains);
 
 public record EnterpriseIdentityProviderOptionDto(
     Guid IdentityProviderId,

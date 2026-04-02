@@ -40,6 +40,7 @@ public class MsrCommandCenterDbContext : IdentityDbContext<ApplicationUser, Iden
     public DbSet<OrganizationAuthenticationSettings> OrganizationAuthenticationSettings => Set<OrganizationAuthenticationSettings>();
     public DbSet<OrganizationIdentityProvider> OrganizationIdentityProviders => Set<OrganizationIdentityProvider>();
     public DbSet<OrganizationIntegrationConnection> OrganizationIntegrationConnections => Set<OrganizationIntegrationConnection>();
+    public DbSet<OrganizationVerifiedDomain> OrganizationVerifiedDomains => Set<OrganizationVerifiedDomain>();
     public DbSet<ExternalIdentityLink> ExternalIdentityLinks => Set<ExternalIdentityLink>();
     public DbSet<EnterpriseAuthSession> EnterpriseAuthSessions => Set<EnterpriseAuthSession>();
 
@@ -79,6 +80,7 @@ public class MsrCommandCenterDbContext : IdentityDbContext<ApplicationUser, Iden
         builder.Entity<OrganizationAuthenticationSettings>().HasIndex(x => x.OrganizationId).IsUnique();
         builder.Entity<OrganizationIdentityProvider>().HasIndex(x => new { x.OrganizationId, x.ProviderType, x.Name }).IsUnique();
         builder.Entity<OrganizationIntegrationConnection>().HasIndex(x => new { x.OrganizationId, x.ProviderType, x.Name }).IsUnique();
+        builder.Entity<OrganizationVerifiedDomain>().HasIndex(x => new { x.OrganizationId, x.Domain }).IsUnique();
         builder.Entity<ExternalIdentityLink>().HasIndex(x => new { x.OrganizationId, x.ProviderType, x.ExternalSubject }).IsUnique();
         builder.Entity<ExternalIdentityLink>().HasIndex(x => new { x.OrganizationId, x.UserId, x.ProviderType }).IsUnique();
         builder.Entity<EnterpriseAuthSession>().HasIndex(x => x.StateToken).IsUnique();
@@ -98,6 +100,12 @@ public class MsrCommandCenterDbContext : IdentityDbContext<ApplicationUser, Iden
 
         builder.Entity<Organization>()
             .HasMany(x => x.IntegrationConnections)
+            .WithOne(x => x.Organization)
+            .HasForeignKey(x => x.OrganizationId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<Organization>()
+            .HasMany(x => x.VerifiedDomains)
             .WithOne(x => x.Organization)
             .HasForeignKey(x => x.OrganizationId)
             .OnDelete(DeleteBehavior.Cascade);

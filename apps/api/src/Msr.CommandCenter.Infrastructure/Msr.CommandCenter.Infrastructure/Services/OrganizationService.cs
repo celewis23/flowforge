@@ -90,11 +90,16 @@ public class OrganizationService : IOrganizationService
             .OrderBy(x => x.ProviderType)
             .ThenBy(x => x.Name)
             .ToListAsync(cancellationToken);
+        var verifiedDomains = await _dbContext.OrganizationVerifiedDomains
+            .Where(x => x.OrganizationId == organizationId)
+            .OrderBy(x => x.Domain)
+            .ToListAsync(cancellationToken);
 
         return new OrganizationEnterpriseSettingsDto(
             MapAuthenticationSettings(auth),
             identityProviders.Select(MapIdentityProvider).ToList(),
-            integrations.Select(MapIntegrationConnection).ToList());
+            integrations.Select(MapIntegrationConnection).ToList(),
+            verifiedDomains.Select(MapVerifiedDomain).ToList());
     }
 
     public async Task<OrganizationAuthenticationSettingsDto> UpdateAuthenticationSettingsAsync(Guid organizationId, UpdateOrganizationAuthenticationSettingsRequest request, CancellationToken cancellationToken)
@@ -208,6 +213,70 @@ public class OrganizationService : IOrganizationService
         return MapIntegrationConnection(connection);
     }
 
+    public async Task<OrganizationVerifiedDomainDto> UpsertVerifiedDomainAsync(Guid organizationId, UpsertOrganizationVerifiedDomainRequest request, CancellationToken cancellationToken)
+    {
+        var normalizedDomain = request.Domain.Trim().ToLowerInvariant();
+        OrganizationVerifiedDomain domain;
+        if (request.VerifiedDomainId.HasValue)
+        {
+            domain = await _dbContext.OrganizationVerifiedDomains
+                .Where(x => x.OrganizationId == organizationId && x.Id == request.VerifiedDomainId.Value)
+                .SingleAsync(cancellationToken);
+
+            var changed = !string.Equals(domain.Domain, normalizedDomain, StringComparison.OrdinalIgnoreCase) ||
+                          !string.Equals(domain.VerificationMethod, request.VerificationMethod, StringComparison.Ordinal);
+            domain.Domain = normalizedDomain;
+            domain.VerificationMethod = request.VerificationMethod;
+            if (changed)
+            {
+                domain.Status = DomainVerificationStatus.Pending;
+                domain.ChallengeToken = GenerateChallengeToken();
+                domain.VerifiedAtUtc = null;
+                domain.LastCheckedAtUtc = null;
+                domain.FailureReason = string.Empty;
+            }
+        }
+        else
+        {
+            domain = new OrganizationVerifiedDomain
+            {
+                OrganizationId = organizationId,
+                Domain = normalizedDomain,
+                VerificationMethod = request.VerificationMethod,
+                Status = DomainVerificationStatus.Pending,
+                ChallengeToken = GenerateChallengeToken()
+            };
+            _dbContext.OrganizationVerifiedDomains.Add(domain);
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        await WriteEnterpriseAuditAsync(organizationId, "VerifiedDomainUpserted", "OrganizationVerifiedDomain", domain.Id.ToString(), $"Verified domain '{domain.Domain}' saved.", cancellationToken);
+        return MapVerifiedDomain(domain);
+    }
+
+    public async Task<OrganizationVerifiedDomainDto> VerifyDomainAsync(Guid organizationId, VerifyOrganizationDomainRequest request, CancellationToken cancellationToken)
+    {
+        var domain = await _dbContext.OrganizationVerifiedDomains
+            .Where(x => x.OrganizationId == organizationId && x.Id == request.VerifiedDomainId)
+            .SingleAsync(cancellationToken);
+
+        domain.Status = request.Verified ? DomainVerificationStatus.Verified : DomainVerificationStatus.Failed;
+        domain.VerifiedAtUtc = request.Verified ? DateTime.UtcNow : null;
+        domain.LastCheckedAtUtc = DateTime.UtcNow;
+        domain.FailureReason = request.Verified ? string.Empty : request.FailureReason.Trim();
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        await WriteEnterpriseAuditAsync(
+            organizationId,
+            request.Verified ? "VerifiedDomainConfirmed" : "VerifiedDomainCheckFailed",
+            "OrganizationVerifiedDomain",
+            domain.Id.ToString(),
+            request.Verified ? $"Verified domain '{domain.Domain}' confirmed." : $"Verified domain '{domain.Domain}' check failed.",
+            cancellationToken);
+
+        return MapVerifiedDomain(domain);
+    }
+
     private async Task<OrganizationAuthenticationSettings> EnsureAuthenticationSettingsAsync(Guid organizationId, CancellationToken cancellationToken)
     {
         var settings = await _dbContext.OrganizationAuthenticationSettings
@@ -296,4 +365,19 @@ public class OrganizationService : IOrganizationService
             connection.LastValidatedAtUtc,
             connection.LastSyncAtUtc,
             connection.LastError);
+
+    private static OrganizationVerifiedDomainDto MapVerifiedDomain(OrganizationVerifiedDomain domain) =>
+        new(
+            domain.Id,
+            domain.OrganizationId,
+            domain.Domain,
+            domain.VerificationMethod,
+            domain.Status.ToString(),
+            domain.ChallengeToken,
+            domain.VerifiedAtUtc,
+            domain.LastCheckedAtUtc,
+            domain.FailureReason);
+
+    private static string GenerateChallengeToken() =>
+        $"flowforge-verification={Convert.ToHexString(Guid.NewGuid().ToByteArray()).ToLowerInvariant()}";
 }

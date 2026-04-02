@@ -156,3 +156,39 @@ export async function updateIntegrationConnectionStateAction(formData: FormData)
 
   revalidatePath("/organization-settings");
 }
+
+export async function createVerifiedDomainAction(formData: FormData) {
+  const organizationId = String(formData.get("organizationId") ?? "");
+
+  await apiMutation(`/api/organizations/${organizationId}/enterprise-settings/domains`, "POST", {
+    verifiedDomainId: null,
+    domain: String(formData.get("domain") ?? ""),
+    verificationMethod: String(formData.get("verificationMethod") ?? "DnsTxt"),
+  });
+
+  revalidatePath("/organization-settings");
+}
+
+export async function updateVerifiedDomainAction(formData: FormData) {
+  const organizationId = String(formData.get("organizationId") ?? "");
+
+  await apiMutation(`/api/organizations/${organizationId}/enterprise-settings/domains`, "POST", {
+    verifiedDomainId: String(formData.get("verifiedDomainId") ?? ""),
+    domain: String(formData.get("domain") ?? ""),
+    verificationMethod: String(formData.get("verificationMethod") ?? "DnsTxt"),
+  });
+
+  revalidatePath("/organization-settings");
+}
+
+export async function verifyDomainStateAction(formData: FormData) {
+  const organizationId = String(formData.get("organizationId") ?? "");
+
+  await apiMutation(`/api/organizations/${organizationId}/enterprise-settings/domains/verify`, "POST", {
+    verifiedDomainId: String(formData.get("verifiedDomainId") ?? ""),
+    verified: formData.get("verified") === "true",
+    failureReason: String(formData.get("failureReason") ?? ""),
+  });
+
+  revalidatePath("/organization-settings");
+}

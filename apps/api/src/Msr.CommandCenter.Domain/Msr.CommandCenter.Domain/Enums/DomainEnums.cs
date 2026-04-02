@@ -120,3 +120,11 @@ public enum ProvisioningMode
     JustInTime = 2,
     Scim = 3
 }
+
+public enum DomainVerificationStatus
+{
+    Pending = 1,
+    Verified = 2,
+    Failed = 3,
+    Revoked = 4
+}

@@ -12,4 +12,6 @@ public interface IOrganizationService
     Task<OrganizationAuthenticationSettingsDto> UpdateAuthenticationSettingsAsync(Guid organizationId, UpdateOrganizationAuthenticationSettingsRequest request, CancellationToken cancellationToken);
     Task<OrganizationIdentityProviderDto> UpsertIdentityProviderAsync(Guid organizationId, UpsertOrganizationIdentityProviderRequest request, CancellationToken cancellationToken);
     Task<OrganizationIntegrationConnectionDto> UpsertIntegrationConnectionAsync(Guid organizationId, UpsertOrganizationIntegrationConnectionRequest request, CancellationToken cancellationToken);
+    Task<OrganizationVerifiedDomainDto> UpsertVerifiedDomainAsync(Guid organizationId, UpsertOrganizationVerifiedDomainRequest request, CancellationToken cancellationToken);
+    Task<OrganizationVerifiedDomainDto> VerifyDomainAsync(Guid organizationId, VerifyOrganizationDomainRequest request, CancellationToken cancellationToken);
 }

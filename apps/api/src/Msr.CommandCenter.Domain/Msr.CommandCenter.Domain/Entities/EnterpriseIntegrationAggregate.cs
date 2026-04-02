@@ -51,6 +51,18 @@ public class OrganizationIntegrationConnection : TenantEntity
     public Organization? Organization { get; set; }
 }
 
+public class OrganizationVerifiedDomain : TenantEntity
+{
+    public string Domain { get; set; } = string.Empty;
+    public string VerificationMethod { get; set; } = "DnsTxt";
+    public DomainVerificationStatus Status { get; set; } = DomainVerificationStatus.Pending;
+    public string ChallengeToken { get; set; } = string.Empty;
+    public DateTime? VerifiedAtUtc { get; set; }
+    public DateTime? LastCheckedAtUtc { get; set; }
+    public string FailureReason { get; set; } = string.Empty;
+    public Organization? Organization { get; set; }
+}
+
 public class ExternalIdentityLink : TenantEntity
 {
     public Guid UserId { get; set; }

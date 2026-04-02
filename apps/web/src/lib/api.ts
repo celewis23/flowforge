@@ -90,10 +90,22 @@ type OrganizationIntegrationConnectionDto = {
   lastSyncAtUtc?: string | null;
   lastError: string;
 };
+type OrganizationVerifiedDomainDto = {
+  id: string;
+  organizationId: string;
+  domain: string;
+  verificationMethod: string;
+  status: string;
+  challengeToken: string;
+  verifiedAtUtc?: string | null;
+  lastCheckedAtUtc?: string | null;
+  failureReason: string;
+};
 type OrganizationEnterpriseSettingsDto = {
   authentication: OrganizationAuthenticationSettingsDto;
   identityProviders: OrganizationIdentityProviderDto[];
   integrations: OrganizationIntegrationConnectionDto[];
+  verifiedDomains: OrganizationVerifiedDomainDto[];
 };
 
 async function apiFetch<T>(path: string): Promise<T> {
@@ -742,6 +754,7 @@ async function getEnterpriseSettingsData(organizationId: string) {
       },
       identityProviders: [],
       integrations: [],
+      verifiedDomains: [],
     } satisfies OrganizationEnterpriseSettingsDto;
   }
 }

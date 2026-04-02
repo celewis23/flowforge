@@ -97,6 +97,16 @@ public record UpsertOrganizationIntegrationConnectionRequest(
     string ConfigurationJson,
     IntegrationConnectionStatus Status);
 
+public record UpsertOrganizationVerifiedDomainRequest(
+    Guid? VerifiedDomainId,
+    string Domain,
+    string VerificationMethod);
+
+public record VerifyOrganizationDomainRequest(
+    Guid VerifiedDomainId,
+    bool Verified,
+    string FailureReason);
+
 public record EnterpriseLoginDiscoveryRequest(string Email);
 
 public record EnterpriseLoginInitiateRequest(string Email, Guid IdentityProviderId, string? ReturnUrl);
