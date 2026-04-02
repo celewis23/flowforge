@@ -1,7 +1,10 @@
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { Input, Textarea } from "@/components/ui/input";
 import { PageShell } from "@/components/layout/page-shell";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { createIdentityProviderAction, createIntegrationConnectionAction, updateEnterpriseAuthSettingsAction } from "@/lib/enterprise-settings-actions";
 import { getSettingsData } from "@/lib/api";
 
 export default async function OrganizationSettingsPage() {
@@ -39,11 +42,56 @@ export default async function OrganizationSettingsPage() {
             <p className="text-sm text-muted-foreground">Tenant-level authentication policy, SSO posture, and enterprise provisioning defaults.</p>
           </div>
         </CardHeader>
-        <CardBody className="grid gap-4 lg:grid-cols-4">
-          <Setting label="Auth mode" value={formatValue(data.enterprise.authentication.authenticationMode)} />
-          <Setting label="Local sign-in" value={data.enterprise.authentication.allowLocalPasswordSignIn ? "Allowed" : "Disabled"} />
-          <Setting label="MFA default" value={data.enterprise.authentication.requireMfaByDefault ? "Required" : "Optional"} />
-          <Setting label="JIT provisioning" value={data.enterprise.authentication.allowJustInTimeProvisioning ? "Enabled" : "Disabled"} />
+        <CardBody className="space-y-5">
+          <div className="grid gap-4 lg:grid-cols-4">
+            <Setting label="Auth mode" value={formatValue(data.enterprise.authentication.authenticationMode)} />
+            <Setting label="Local sign-in" value={data.enterprise.authentication.allowLocalPasswordSignIn ? "Allowed" : "Disabled"} />
+            <Setting label="MFA default" value={data.enterprise.authentication.requireMfaByDefault ? "Required" : "Optional"} />
+            <Setting label="JIT provisioning" value={data.enterprise.authentication.allowJustInTimeProvisioning ? "Enabled" : "Disabled"} />
+          </div>
+          <form action={updateEnterpriseAuthSettingsAction} className="grid gap-4 rounded-[0.8rem] border border-border bg-surface p-4 lg:grid-cols-2">
+            <input type="hidden" name="organizationId" value={data.organization.id} />
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="authenticationMode">
+                Authentication mode
+              </label>
+              <select
+                id="authenticationMode"
+                name="authenticationMode"
+                defaultValue={toAuthenticationModeValue(data.enterprise.authentication.authenticationMode)}
+                className="w-full rounded-xl border border-border bg-surface-2 px-4 py-3 text-sm text-foreground shadow-sm"
+              >
+                <option value="1">Local only</option>
+                <option value="2">Mixed: local + SSO</option>
+                <option value="3">SSO required</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="allowedDomains">
+                Allowed domains
+              </label>
+              <Input id="allowedDomains" name="allowedDomains" defaultValue={data.enterprise.authentication.allowedDomains.join(", ")} placeholder="company.com, agency.gov" />
+            </div>
+            <label className="flex items-center gap-2 text-sm text-muted-foreground">
+              <input type="checkbox" name="allowLocalPasswordSignIn" className="h-4 w-4 rounded border-border" defaultChecked={data.enterprise.authentication.allowLocalPasswordSignIn} />
+              Allow local password sign-in
+            </label>
+            <label className="flex items-center gap-2 text-sm text-muted-foreground">
+              <input type="checkbox" name="requireMfaByDefault" className="h-4 w-4 rounded border-border" defaultChecked={data.enterprise.authentication.requireMfaByDefault} />
+              Require MFA by default
+            </label>
+            <label className="flex items-center gap-2 text-sm text-muted-foreground">
+              <input type="checkbox" name="allowJustInTimeProvisioning" className="h-4 w-4 rounded border-border" defaultChecked={data.enterprise.authentication.allowJustInTimeProvisioning} />
+              Enable just-in-time provisioning
+            </label>
+            <label className="flex items-center gap-2 text-sm text-muted-foreground">
+              <input type="checkbox" name="enforceDomainVerification" className="h-4 w-4 rounded border-border" defaultChecked={data.enterprise.authentication.enforceDomainVerification} />
+              Enforce domain verification
+            </label>
+            <div className="lg:col-span-2">
+              <Button type="submit">Save enterprise auth policy</Button>
+            </div>
+          </form>
         </CardBody>
       </Card>
       <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
@@ -90,6 +138,96 @@ export default async function OrganizationSettingsPage() {
               <div className="px-5 py-5 text-sm text-muted-foreground sm:px-6">No enterprise identity providers configured yet.</div>
             )}
           </CardBody>
+          <CardBody className="border-t border-border">
+            <form action={createIdentityProviderAction} className="grid gap-4 lg:grid-cols-2">
+              <input type="hidden" name="organizationId" value={data.organization.id} />
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="provider-name">
+                  Provider name
+                </label>
+                <Input id="provider-name" name="name" placeholder="Contoso Entra ID" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="provider-type">
+                  Provider type
+                </label>
+                <select id="provider-type" name="providerType" defaultValue="1" className="w-full rounded-xl border border-border bg-surface-2 px-4 py-3 text-sm text-foreground shadow-sm">
+                  <option value="1">Microsoft Entra ID</option>
+                  <option value="2">Google Workspace</option>
+                  <option value="3">SAML</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="clientId">
+                  Client ID
+                </label>
+                <Input id="clientId" name="clientId" placeholder="Application / OAuth client ID" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="clientSecretReference">
+                  Client secret reference
+                </label>
+                <Input id="clientSecretReference" name="clientSecretReference" placeholder="Managed secret value or reference" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="authority">
+                  Authority
+                </label>
+                <Input id="authority" name="authority" placeholder="https://login.microsoftonline.com/tenant-id" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="metadataUrl">
+                  Metadata URL
+                </label>
+                <Input id="metadataUrl" name="metadataUrl" placeholder="Optional OIDC metadata URL override" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="tenantIdentifier">
+                  Tenant identifier
+                </label>
+                <Input id="tenantIdentifier" name="tenantIdentifier" placeholder="tenant-id or workspace customer ID" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="scopes">
+                  Scopes
+                </label>
+                <Input id="scopes" name="scopes" defaultValue="openid, profile, email" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="domainHints">
+                  Domain hints
+                </label>
+                <Input id="domainHints" name="domainHints" placeholder="company.com, agency.gov" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="provisioningMode">
+                  Provisioning mode
+                </label>
+                <select id="provisioningMode" name="provisioningMode" defaultValue="1" className="w-full rounded-xl border border-border bg-surface-2 px-4 py-3 text-sm text-foreground shadow-sm">
+                  <option value="1">None</option>
+                  <option value="2">Just-in-time</option>
+                  <option value="3">SCIM</option>
+                </select>
+              </div>
+              <div className="space-y-2 lg:col-span-2">
+                <label className="text-sm font-medium" htmlFor="roleMappingsJson">
+                  Role mappings JSON
+                </label>
+                <Textarea id="roleMappingsJson" name="roleMappingsJson" defaultValue="{}" className="min-h-24" />
+              </div>
+              <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                <input type="checkbox" name="isEnabled" className="h-4 w-4 rounded border-border" defaultChecked />
+                Enable provider
+              </label>
+              <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                <input type="checkbox" name="isPrimary" className="h-4 w-4 rounded border-border" />
+                Set as primary SSO provider
+              </label>
+              <div className="lg:col-span-2">
+                <Button type="submit">Add identity provider</Button>
+              </div>
+            </form>
+          </CardBody>
         </Card>
         <Card>
           <CardHeader>
@@ -128,6 +266,73 @@ export default async function OrganizationSettingsPage() {
                 : "No verified domains configured yet."}
             </div>
           </CardBody>
+          <CardBody className="border-t border-border">
+            <form action={createIntegrationConnectionAction} className="grid gap-4">
+              <input type="hidden" name="organizationId" value={data.organization.id} />
+              <div className="grid gap-4 lg:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium" htmlFor="integration-name">
+                    Connection name
+                  </label>
+                  <Input id="integration-name" name="name" placeholder="Microsoft 365 tenant" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium" htmlFor="integration-providerType">
+                    Provider
+                  </label>
+                  <select id="integration-providerType" name="providerType" defaultValue="1" className="w-full rounded-xl border border-border bg-surface-2 px-4 py-3 text-sm text-foreground shadow-sm">
+                    <option value="1">Microsoft 365</option>
+                    <option value="2">Google Workspace</option>
+                    <option value="3">Slack</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium" htmlFor="integration-clientId">
+                    Client ID
+                  </label>
+                  <Input id="integration-clientId" name="clientId" placeholder="App registration / OAuth client ID" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium" htmlFor="integration-clientSecretReference">
+                    Client secret reference
+                  </label>
+                  <Input id="integration-clientSecretReference" name="clientSecretReference" placeholder="Managed secret value or reference" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium" htmlFor="integration-tenantIdentifier">
+                    Tenant identifier
+                  </label>
+                  <Input id="integration-tenantIdentifier" name="tenantIdentifier" placeholder="tenant-id, directory-id, or workspace ID" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium" htmlFor="integration-scopes">
+                    Scopes
+                  </label>
+                  <Input id="integration-scopes" name="scopes" placeholder="Files.Read.All, Mail.Send, Calendars.Read" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="integration-configurationJson">
+                  Configuration JSON
+                </label>
+                <Textarea id="integration-configurationJson" name="configurationJson" defaultValue="{}" className="min-h-24" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="integration-status">
+                  Connection status
+                </label>
+                <select id="integration-status" name="status" defaultValue="1" className="w-full rounded-xl border border-border bg-surface-2 px-4 py-3 text-sm text-foreground shadow-sm">
+                  <option value="1">Draft</option>
+                  <option value="2">Active</option>
+                  <option value="3">Disabled</option>
+                  <option value="4">Error</option>
+                </select>
+              </div>
+              <div>
+                <Button type="submit">Add integration connection</Button>
+              </div>
+            </form>
+          </CardBody>
         </Card>
       </div>
     </PageShell>
@@ -145,4 +350,15 @@ function Setting({ label, value }: { label: string; value: string }) {
 
 function formatValue(value: string) {
   return value.replace(/([a-z])([A-Z])/g, "$1 $2");
+}
+
+function toAuthenticationModeValue(value: string) {
+  switch (value) {
+    case "LocalOnly":
+      return "1";
+    case "SsoRequired":
+      return "3";
+    default:
+      return "2";
+  }
 }
