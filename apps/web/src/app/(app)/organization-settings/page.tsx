@@ -58,7 +58,8 @@ export default async function OrganizationSettingsPage() {
           </Card>
         ))}
       </div>
-      <Card>
+      <IntegrationSetupWizard data={data} />
+      <Card id="enterprise-identity">
         <CardHeader>
           <div className="space-y-2">
             <h2 className="text-lg font-semibold">Enterprise identity</h2>
@@ -135,7 +136,7 @@ export default async function OrganizationSettingsPage() {
           </form>
         </CardBody>
       </Card>
-      <Card>
+      <Card id="profile-sync">
         <CardHeader>
           <div className="space-y-2">
             <h2 className="text-lg font-semibold">Profile and org-chart sync</h2>
@@ -1233,7 +1234,7 @@ export default async function OrganizationSettingsPage() {
         </CardBody>
       </Card>
       <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
-        <Card>
+        <Card id="productivity-integrations">
           <CardHeader>
             <div className="space-y-2">
               <h2 className="text-lg font-semibold">Identity providers</h2>
@@ -1729,7 +1730,7 @@ export default async function OrganizationSettingsPage() {
           </CardBody>
         </Card>
       </div>
-      <Card>
+      <Card id="verified-domains">
         <CardHeader>
           <div className="space-y-2">
             <h2 className="text-lg font-semibold">Verified domains</h2>
@@ -1844,6 +1845,527 @@ export default async function OrganizationSettingsPage() {
         </CardBody>
       </Card>
     </PageShell>
+  );
+}
+
+function IntegrationSetupWizard({ data }: { data: Awaited<ReturnType<typeof getSettingsData>> }) {
+  const guides = buildIntegrationSetupGuides(data);
+
+  return (
+    <Card id="integration-setup-wizard">
+      <CardHeader>
+        <div className="space-y-2">
+          <h2 className="text-lg font-semibold">Enterprise integration setup wizard</h2>
+          <p className="text-sm text-muted-foreground">
+            FlowForge can walk admins through Google Workspace and Microsoft setup without leaving the product. Google is the fastest path to validate now, and Microsoft follows the same structure.
+          </p>
+        </div>
+      </CardHeader>
+      <CardBody className="space-y-5">
+        <div className="grid gap-4 xl:grid-cols-2">
+          {guides.map((guide) => (
+            <div key={guide.key} className="rounded-[0.8rem] border border-border bg-surface p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base font-semibold">{guide.title}</h3>
+                    {guide.recommended ? <Badge variant="accent">Start here</Badge> : null}
+                  </div>
+                  <p className="text-sm text-muted-foreground">{guide.description}</p>
+                </div>
+                <Badge variant={guide.progress.complete === guide.progress.total ? "success" : "neutral"}>
+                  {guide.progress.complete}/{guide.progress.total} complete
+                </Badge>
+              </div>
+
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                {guide.progress.items.map((item) => (
+                  <div key={item.label} className="rounded-[0.7rem] border border-border bg-surface-2 px-3 py-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-sm font-medium">{item.label}</p>
+                      <Badge variant={item.done ? "success" : "neutral"}>{item.done ? "Done" : "Pending"}</Badge>
+                    </div>
+                    <p className="mt-1 text-xs text-muted-foreground">{item.help}</p>
+                  </div>
+                ))}
+              </div>
+
+              <ol className="mt-5 space-y-4">
+                {guide.steps.map((step, index) => (
+                  <li key={step.title} className="rounded-[0.75rem] border border-border bg-surface-2 p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-accent/10 text-xs font-semibold text-accent">
+                        {index + 1}
+                      </div>
+                      <div className="min-w-0 space-y-3">
+                        <div className="space-y-1">
+                          <p className="text-sm font-semibold">{step.title}</p>
+                          <p className="text-sm text-muted-foreground">{step.body}</p>
+                        </div>
+                        {step.links.length > 0 ? (
+                          <div className="flex flex-wrap gap-2">
+                            {step.links.map((link) => (
+                              <a
+                                key={link.href}
+                                href={link.href}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center rounded-[0.65rem] border border-border bg-surface px-3 py-2 text-sm font-medium text-foreground transition hover:bg-muted"
+                              >
+                                {link.label}
+                              </a>
+                            ))}
+                          </div>
+                        ) : null}
+                        {step.tip ? (
+                          <div className="rounded-[0.65rem] border border-accent/20 bg-accent/5 px-3 py-2 text-xs text-muted-foreground">
+                            {step.tip}
+                          </div>
+                        ) : null}
+                        {step.form}
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          ))}
+        </div>
+      </CardBody>
+    </Card>
+  );
+}
+
+function buildIntegrationSetupGuides(data: Awaited<ReturnType<typeof getSettingsData>>) {
+  const googleIdentityProviders = data.enterprise.identityProviders.filter((provider) => provider.providerType === "GoogleWorkspace");
+  const microsoftIdentityProviders = data.enterprise.identityProviders.filter((provider) => provider.providerType === "MicrosoftEntraId");
+  const googleIntegrations = data.enterprise.integrations.filter((integration) => integration.providerType === "GoogleWorkspace");
+  const microsoftIntegrations = data.enterprise.integrations.filter((integration) => integration.providerType === "Microsoft365");
+
+  return [
+    {
+      key: "google",
+      title: "Google Workspace",
+      description: "Guide admins through Admin SDK setup, domain-wide delegation, directory access, and the first FlowForge profile sync.",
+      recommended: true,
+      progress: buildGuideProgress({
+        verifiedDomains: data.enterprise.verifiedDomains,
+        identityProviders: googleIdentityProviders,
+        integrations: googleIntegrations,
+        profileSyncSettings: data.enterprise.profileSyncSettings,
+      }),
+      steps: [
+        {
+          title: "Prepare Google Workspace admin access",
+          body: "Open the Google Admin and Google Cloud consoles, confirm you have Workspace super-admin access, and enable the Admin SDK API for your project.",
+          links: [
+            { label: "Open Google Admin", href: "https://admin.google.com" },
+            { label: "Open Google Cloud Console", href: "https://console.cloud.google.com" },
+            { label: "Enable Admin SDK API", href: "https://console.cloud.google.com/apis/library/admin.googleapis.com" },
+          ],
+          tip: "You’ll need a service account with domain-wide delegation and the Admin SDK Directory API enabled.",
+        },
+        {
+          title: "Verify your domain in FlowForge",
+          body: "Google identity and directory sync both work best when your verified Workspace domain is recorded in FlowForge first.",
+          links: [
+            { label: "Jump to verified domains", href: "#verified-domains" },
+          ],
+          tip: data.enterprise.verifiedDomains.length > 0 ? "A verified domain already exists. Add more only if you manage multiple Workspace domains." : "Add your primary Workspace domain before validating the Google identity provider.",
+        },
+        {
+          title: "Create the Google identity provider",
+          body: "Register the Workspace login path inside FlowForge so users can sign in with Google Workspace SSO.",
+          links: [],
+          form: (
+            <form action={createIdentityProviderAction} className="grid gap-3 lg:grid-cols-2">
+              <input type="hidden" name="organizationId" value={data.organization.id} />
+              <input type="hidden" name="providerType" value="2" />
+              <input type="hidden" name="authority" value="https://accounts.google.com" />
+              <input type="hidden" name="metadataUrl" value="https://accounts.google.com/.well-known/openid-configuration" />
+              <input type="hidden" name="roleMappingsJson" value="{}" />
+              <input type="hidden" name="provisioningMode" value="1" />
+              <input type="hidden" name="isEnabled" value="on" />
+              <input type="hidden" name="isPrimary" value={googleIdentityProviders.length === 0 ? "on" : ""} />
+              <div className="space-y-2 lg:col-span-2">
+                <label className="text-xs font-medium" htmlFor="wizard-google-idp-name">Connection name</label>
+                <Input id="wizard-google-idp-name" name="name" defaultValue="Google Workspace SSO" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-medium" htmlFor="wizard-google-client-id">Client ID</label>
+                <Input id="wizard-google-client-id" name="clientId" placeholder="Google OAuth client ID" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-medium" htmlFor="wizard-google-secret-ref">Client secret reference</label>
+                <Input id="wizard-google-secret-ref" name="clientSecretReference" placeholder="Managed secret or reference" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-medium" htmlFor="wizard-google-tenant">Workspace customer or tenant identifier</label>
+                <Input id="wizard-google-tenant" name="tenantIdentifier" placeholder="my_customer or customer ID" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-medium" htmlFor="wizard-google-domain-hints">Domain hints</label>
+                <Input id="wizard-google-domain-hints" name="domainHints" defaultValue={data.enterprise.verifiedDomains.map((domain) => domain.domain).join(", ")} placeholder="company.com, agency.gov" />
+              </div>
+              <div className="space-y-2 lg:col-span-2">
+                <label className="text-xs font-medium" htmlFor="wizard-google-idp-scopes">Identity scopes</label>
+                <Input id="wizard-google-idp-scopes" name="scopes" defaultValue="openid, email, profile" />
+              </div>
+              <div className="lg:col-span-2">
+                <Button type="submit" size="sm">Save Google identity provider</Button>
+              </div>
+            </form>
+          ),
+        },
+        {
+          title: "Create the Google directory integration",
+          body: "Store the Google Workspace connection FlowForge will use for profile sync, notifications, exports, and later calendar features.",
+          links: [],
+          tip: "For first-time validation, you can paste a short-lived access token into the configuration JSON and replace it with a managed token flow later.",
+          form: (
+            <form action={createIntegrationConnectionAction} className="grid gap-3">
+              <input type="hidden" name="organizationId" value={data.organization.id} />
+              <input type="hidden" name="providerType" value="2" />
+              <input type="hidden" name="status" value="2" />
+              <div className="grid gap-3 lg:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-xs font-medium" htmlFor="wizard-google-integration-name">Integration name</label>
+                  <Input id="wizard-google-integration-name" name="name" defaultValue="Google Workspace Directory" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-medium" htmlFor="wizard-google-integration-tenant">Workspace customer or tenant identifier</label>
+                  <Input id="wizard-google-integration-tenant" name="tenantIdentifier" placeholder="my_customer or customer ID" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-medium" htmlFor="wizard-google-integration-client-id">Client ID</label>
+                  <Input id="wizard-google-integration-client-id" name="clientId" placeholder="Service account or OAuth client ID" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-medium" htmlFor="wizard-google-integration-secret-ref">Client secret reference</label>
+                  <Input id="wizard-google-integration-secret-ref" name="clientSecretReference" placeholder="Managed secret or reference" />
+                </div>
+                <div className="space-y-2 lg:col-span-2">
+                  <label className="text-xs font-medium" htmlFor="wizard-google-integration-scopes">Directory scopes</label>
+                  <Input
+                    id="wizard-google-integration-scopes"
+                    name="scopes"
+                    defaultValue="https://www.googleapis.com/auth/admin.directory.user.readonly"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-medium" htmlFor="wizard-google-configuration-json">Configuration JSON</label>
+                <Textarea
+                  id="wizard-google-configuration-json"
+                  name="configurationJson"
+                  defaultValue={buildConfigurationJson("google")}
+                  className="min-h-28"
+                />
+              </div>
+              <div>
+                <Button type="submit" size="sm">Save Google integration</Button>
+              </div>
+            </form>
+          ),
+        },
+        {
+          title: "Create and run the first profile sync",
+          body: "Attach the Google integration to profile sync, then kick off the first run to bring titles, departments, locations, managers, and photos into FlowForge.",
+          links: [
+            { label: "Jump to profile sync", href: "#profile-sync" },
+          ],
+          form: (
+            <div className="grid gap-3">
+              {googleIntegrations.length > 0 ? (
+                <form action={createProfileSyncSettingAction} className="grid gap-3 lg:grid-cols-2">
+                  <input type="hidden" name="organizationId" value={data.organization.id} />
+                  <div className="space-y-2 lg:col-span-2">
+                    <label className="text-xs font-medium" htmlFor="wizard-google-profile-integration">Integration connection</label>
+                    <select
+                      id="wizard-google-profile-integration"
+                      name="integrationConnectionId"
+                      className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-foreground shadow-sm"
+                      defaultValue={googleIntegrations[0]?.id}
+                    >
+                      {googleIntegrations.map((integration) => (
+                        <option key={integration.id} value={integration.id}>
+                          {integration.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <input type="checkbox" name="isEnabled" className="h-4 w-4 rounded border-border" defaultChecked />
+                    Enable profile sync
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <input type="checkbox" name="syncJobTitles" className="h-4 w-4 rounded border-border" defaultChecked />
+                    Sync job titles
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <input type="checkbox" name="syncDepartments" className="h-4 w-4 rounded border-border" defaultChecked />
+                    Sync departments
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <input type="checkbox" name="syncManagerHierarchy" className="h-4 w-4 rounded border-border" defaultChecked />
+                    Sync manager hierarchy
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <input type="checkbox" name="syncOfficeLocation" className="h-4 w-4 rounded border-border" defaultChecked />
+                    Sync office locations
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <input type="checkbox" name="syncProfilePhotos" className="h-4 w-4 rounded border-border" />
+                    Sync profile photos
+                  </label>
+                  <div className="lg:col-span-2">
+                    <Button type="submit" size="sm">Create Google profile sync</Button>
+                  </div>
+                </form>
+              ) : (
+                <div className="rounded-[0.65rem] border border-dashed border-border bg-surface px-3 py-3 text-sm text-muted-foreground">
+                  Save the Google integration first, then FlowForge can create a profile sync policy for it.
+                </div>
+              )}
+
+              {data.enterprise.profileSyncSettings.some((setting) => googleIntegrations.some((integration) => integration.id === setting.integrationConnectionId)) ? (
+                <div className="flex flex-wrap gap-2">
+                  {data.enterprise.profileSyncSettings
+                    .filter((setting) => googleIntegrations.some((integration) => integration.id === setting.integrationConnectionId))
+                    .map((setting) => (
+                      <form key={setting.id} action={triggerProfileSyncAction}>
+                        <input type="hidden" name="organizationId" value={data.organization.id} />
+                        <input type="hidden" name="profileSyncSettingId" value={setting.id} />
+                        <input type="hidden" name="triggeredBy" value="OrgAdmin" />
+                        <input type="hidden" name="summary" value="Google Workspace profile sync requested from setup wizard." />
+                        <Button type="submit" size="sm" variant="secondary">Run first Google sync</Button>
+                      </form>
+                    ))}
+                </div>
+              ) : null}
+            </div>
+          ),
+        },
+      ],
+    },
+    {
+      key: "microsoft",
+      title: "Microsoft Entra ID and Microsoft 365",
+      description: "Prepare app registration, Graph access, tenant settings, and profile sync so larger enterprise and public-sector orgs can use their existing Microsoft stack.",
+      recommended: false,
+      progress: buildGuideProgress({
+        verifiedDomains: data.enterprise.verifiedDomains,
+        identityProviders: microsoftIdentityProviders,
+        integrations: microsoftIntegrations,
+        profileSyncSettings: data.enterprise.profileSyncSettings,
+      }),
+      steps: [
+        {
+          title: "Open Microsoft admin and app registration",
+          body: "Use Entra ID app registrations for the identity provider and Microsoft Graph access for profile enrichment.",
+          links: [
+            { label: "Open Microsoft Entra Admin Center", href: "https://entra.microsoft.com" },
+            { label: "Open App registrations", href: "https://entra.microsoft.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade" },
+          ],
+          tip: "You’ll want delegated or app permissions for Graph reads before running FlowForge profile sync.",
+        },
+        {
+          title: "Create the Microsoft identity provider",
+          body: "Register the Entra sign-in path inside FlowForge with your tenant-specific authority and metadata.",
+          links: [
+            { label: "Jump to verified domains", href: "#verified-domains" },
+            { label: "Jump to enterprise identity", href: "#enterprise-identity" },
+          ],
+          form: (
+            <form action={createIdentityProviderAction} className="grid gap-3 lg:grid-cols-2">
+              <input type="hidden" name="organizationId" value={data.organization.id} />
+              <input type="hidden" name="providerType" value="1" />
+              <input type="hidden" name="roleMappingsJson" value="{}" />
+              <input type="hidden" name="provisioningMode" value="1" />
+              <input type="hidden" name="isEnabled" value="on" />
+              <input type="hidden" name="isPrimary" value={microsoftIdentityProviders.length === 0 ? "on" : ""} />
+              <div className="space-y-2 lg:col-span-2">
+                <label className="text-xs font-medium" htmlFor="wizard-microsoft-idp-name">Connection name</label>
+                <Input id="wizard-microsoft-idp-name" name="name" defaultValue="Microsoft Entra ID SSO" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-medium" htmlFor="wizard-microsoft-client-id">Client ID</label>
+                <Input id="wizard-microsoft-client-id" name="clientId" placeholder="Application (client) ID" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-medium" htmlFor="wizard-microsoft-secret-ref">Client secret reference</label>
+                <Input id="wizard-microsoft-secret-ref" name="clientSecretReference" placeholder="Managed secret or reference" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-medium" htmlFor="wizard-microsoft-tenant">Tenant ID</label>
+                <Input id="wizard-microsoft-tenant" name="tenantIdentifier" placeholder="Directory (tenant) ID" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-medium" htmlFor="wizard-microsoft-domain-hints">Domain hints</label>
+                <Input id="wizard-microsoft-domain-hints" name="domainHints" defaultValue={data.enterprise.verifiedDomains.map((domain) => domain.domain).join(", ")} placeholder="company.com, agency.gov" />
+              </div>
+              <div className="space-y-2 lg:col-span-2">
+                <label className="text-xs font-medium" htmlFor="wizard-microsoft-authority">Authority URL</label>
+                <Input id="wizard-microsoft-authority" name="authority" defaultValue="https://login.microsoftonline.com/common/v2.0" />
+              </div>
+              <div className="space-y-2 lg:col-span-2">
+                <label className="text-xs font-medium" htmlFor="wizard-microsoft-metadata">Metadata URL</label>
+                <Input id="wizard-microsoft-metadata" name="metadataUrl" defaultValue="https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration" />
+              </div>
+              <div className="space-y-2 lg:col-span-2">
+                <label className="text-xs font-medium" htmlFor="wizard-microsoft-idp-scopes">Identity scopes</label>
+                <Input id="wizard-microsoft-idp-scopes" name="scopes" defaultValue="openid, profile, email" />
+              </div>
+              <div className="lg:col-span-2">
+                <Button type="submit" size="sm">Save Microsoft identity provider</Button>
+              </div>
+            </form>
+          ),
+        },
+        {
+          title: "Create the Microsoft 365 integration",
+          body: "Store the tenant connection FlowForge will use for Graph profile reads, Teams routing, calendar sync, and cloud exports.",
+          links: [
+            { label: "Jump to productivity integrations", href: "#productivity-integrations" },
+          ],
+          form: (
+            <form action={createIntegrationConnectionAction} className="grid gap-3">
+              <input type="hidden" name="organizationId" value={data.organization.id} />
+              <input type="hidden" name="providerType" value="1" />
+              <input type="hidden" name="status" value="2" />
+              <div className="grid gap-3 lg:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-xs font-medium" htmlFor="wizard-microsoft-integration-name">Integration name</label>
+                  <Input id="wizard-microsoft-integration-name" name="name" defaultValue="Microsoft 365 Directory" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-medium" htmlFor="wizard-microsoft-integration-tenant">Tenant ID</label>
+                  <Input id="wizard-microsoft-integration-tenant" name="tenantIdentifier" placeholder="Directory (tenant) ID" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-medium" htmlFor="wizard-microsoft-integration-client-id">Client ID</label>
+                  <Input id="wizard-microsoft-integration-client-id" name="clientId" placeholder="Application (client) ID" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-medium" htmlFor="wizard-microsoft-integration-secret-ref">Client secret reference</label>
+                  <Input id="wizard-microsoft-integration-secret-ref" name="clientSecretReference" placeholder="Managed secret or reference" />
+                </div>
+                <div className="space-y-2 lg:col-span-2">
+                  <label className="text-xs font-medium" htmlFor="wizard-microsoft-integration-scopes">Graph scopes</label>
+                  <Input id="wizard-microsoft-integration-scopes" name="scopes" defaultValue="User.Read.All, Directory.Read.All" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-medium" htmlFor="wizard-microsoft-configuration-json">Configuration JSON</label>
+                <Textarea
+                  id="wizard-microsoft-configuration-json"
+                  name="configurationJson"
+                  defaultValue={buildConfigurationJson("microsoft")}
+                  className="min-h-28"
+                />
+              </div>
+              <div>
+                <Button type="submit" size="sm">Save Microsoft integration</Button>
+              </div>
+            </form>
+          ),
+        },
+        {
+          title: "Validate the provider and run sync",
+          body: "Once Microsoft values are saved, validate metadata and then create the same profile sync policy FlowForge uses for Google.",
+          links: [
+            { label: "Jump to profile sync", href: "#profile-sync" },
+          ],
+          form: (
+            <div className="flex flex-wrap gap-2">
+              {microsoftIdentityProviders.map((provider) => (
+                <form key={provider.id} action={validateIdentityProviderAction}>
+                  <input type="hidden" name="organizationId" value={data.organization.id} />
+                  <input type="hidden" name="identityProviderId" value={provider.id} />
+                  <Button type="submit" size="sm" variant="secondary">Validate {provider.name}</Button>
+                </form>
+              ))}
+              {microsoftIdentityProviders.length === 0 ? (
+                <div className="rounded-[0.65rem] border border-dashed border-border bg-surface px-3 py-3 text-sm text-muted-foreground">
+                  Save the Microsoft identity provider first, then FlowForge can validate tenant metadata.
+                </div>
+              ) : null}
+            </div>
+          ),
+        },
+      ],
+    },
+  ];
+}
+
+function buildGuideProgress({
+  verifiedDomains,
+  identityProviders,
+  integrations,
+  profileSyncSettings,
+}: {
+  verifiedDomains: Awaited<ReturnType<typeof getSettingsData>>["enterprise"]["verifiedDomains"];
+  identityProviders: Awaited<ReturnType<typeof getSettingsData>>["enterprise"]["identityProviders"];
+  integrations: Awaited<ReturnType<typeof getSettingsData>>["enterprise"]["integrations"];
+  profileSyncSettings: Awaited<ReturnType<typeof getSettingsData>>["enterprise"]["profileSyncSettings"];
+}) {
+  const integrationIds = new Set(integrations.map((integration) => integration.id));
+  const activeProfileSync = profileSyncSettings.some((setting) => integrationIds.has(setting.integrationConnectionId) && setting.isEnabled);
+  const items = [
+    {
+      label: "Verified domain",
+      done: verifiedDomains.some((domain) => domain.status === "Verified"),
+      help: "Use your primary Workspace or tenant domain.",
+    },
+    {
+      label: "Identity provider",
+      done: identityProviders.length > 0,
+      help: "Save the sign-in provider for tenant SSO.",
+    },
+    {
+      label: "Provider validated",
+      done: identityProviders.some((provider) => provider.validationStatus === "Valid"),
+      help: "FlowForge metadata validation should pass.",
+    },
+    {
+      label: "Productivity integration",
+      done: integrations.length > 0,
+      help: "This is the provider FlowForge uses for sync and downstream actions.",
+    },
+    {
+      label: "Profile sync ready",
+      done: activeProfileSync,
+      help: "At least one enabled profile sync setting is attached to the provider.",
+    },
+  ];
+
+  return {
+    total: items.length,
+    complete: items.filter((item) => item.done).length,
+    items,
+  };
+}
+
+function buildConfigurationJson(provider: "google" | "microsoft") {
+  if (provider === "google") {
+    return JSON.stringify(
+      {
+        accessToken: "paste-short-lived-access-token-here",
+        customerId: "my_customer",
+        directoryApiBaseUrl: "https://admin.googleapis.com/admin/directory/v1",
+      },
+      null,
+      2,
+    );
+  }
+
+  return JSON.stringify(
+    {
+      accessToken: "paste-short-lived-access-token-here",
+      directoryApiBaseUrl: "https://graph.microsoft.com/v1.0",
+    },
+    null,
+    2,
   );
 }
 
