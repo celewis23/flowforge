@@ -263,3 +263,37 @@ export async function updateDirectoryGroupMappingAction(formData: FormData) {
 
   revalidatePath("/organization-settings");
 }
+
+export async function createNotificationRouteAction(formData: FormData) {
+  const organizationId = String(formData.get("organizationId") ?? "");
+
+  await apiMutation(`/api/organizations/${organizationId}/enterprise-settings/notification-routes`, "POST", {
+    notificationRouteId: null,
+    integrationConnectionId: String(formData.get("integrationConnectionId") ?? ""),
+    notificationType: Number(formData.get("notificationType") ?? 6),
+    targetType: Number(formData.get("targetType") ?? 1),
+    destinationReference: String(formData.get("destinationReference") ?? ""),
+    destinationLabel: String(formData.get("destinationLabel") ?? ""),
+    isActive: formData.get("isActive") === "on",
+    sendDailyDigest: formData.get("sendDailyDigest") === "on",
+  });
+
+  revalidatePath("/organization-settings");
+}
+
+export async function updateNotificationRouteAction(formData: FormData) {
+  const organizationId = String(formData.get("organizationId") ?? "");
+
+  await apiMutation(`/api/organizations/${organizationId}/enterprise-settings/notification-routes`, "POST", {
+    notificationRouteId: String(formData.get("notificationRouteId") ?? ""),
+    integrationConnectionId: String(formData.get("integrationConnectionId") ?? ""),
+    notificationType: Number(formData.get("notificationType") ?? 6),
+    targetType: Number(formData.get("targetType") ?? 1),
+    destinationReference: String(formData.get("destinationReference") ?? ""),
+    destinationLabel: String(formData.get("destinationLabel") ?? ""),
+    isActive: formData.get("isActive") === "true" || formData.get("isActive") === "on",
+    sendDailyDigest: formData.get("sendDailyDigest") === "true" || formData.get("sendDailyDigest") === "on",
+  });
+
+  revalidatePath("/organization-settings");
+}

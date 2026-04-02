@@ -128,6 +128,16 @@ public record UpsertOrganizationDirectoryGroupMappingRequest(
     bool IsActive,
     bool SyncMembers);
 
+public record UpsertOrganizationNotificationRouteRequest(
+    Guid? NotificationRouteId,
+    Guid IntegrationConnectionId,
+    NotificationType NotificationType,
+    ExternalNotificationTargetType TargetType,
+    string DestinationReference,
+    string DestinationLabel,
+    bool IsActive,
+    bool SendDailyDigest);
+
 public record TriggerOrganizationProvisioningJobRequest(
     string TriggeredBy,
     string Summary);

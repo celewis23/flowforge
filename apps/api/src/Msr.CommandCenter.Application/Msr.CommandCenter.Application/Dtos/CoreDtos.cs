@@ -239,6 +239,19 @@ public record OrganizationDirectoryGroupMappingDto(
     DateTime? LastSyncedAtUtc,
     string LastSyncError);
 
+public record OrganizationNotificationRouteDto(
+    Guid Id,
+    Guid OrganizationId,
+    Guid IntegrationConnectionId,
+    string NotificationType,
+    string TargetType,
+    string DestinationReference,
+    string DestinationLabel,
+    bool IsActive,
+    bool SendDailyDigest,
+    DateTime? LastDeliveredAtUtc,
+    string LastDeliveryError);
+
 public record OrganizationEnterpriseSettingsDto(
     OrganizationAuthenticationSettingsDto Authentication,
     IReadOnlyCollection<OrganizationIdentityProviderDto> IdentityProviders,
@@ -246,7 +259,8 @@ public record OrganizationEnterpriseSettingsDto(
     IReadOnlyCollection<OrganizationVerifiedDomainDto> VerifiedDomains,
     OrganizationProvisioningSettingsDto Provisioning,
     IReadOnlyCollection<OrganizationProvisioningJobDto> ProvisioningJobs,
-    IReadOnlyCollection<OrganizationDirectoryGroupMappingDto> DirectoryGroupMappings);
+    IReadOnlyCollection<OrganizationDirectoryGroupMappingDto> DirectoryGroupMappings,
+    IReadOnlyCollection<OrganizationNotificationRouteDto> NotificationRoutes);
 
 public record EnterpriseIdentityProviderOptionDto(
     Guid IdentityProviderId,

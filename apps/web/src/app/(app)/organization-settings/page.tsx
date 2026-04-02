@@ -6,6 +6,7 @@ import { PageShell } from "@/components/layout/page-shell";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   createDirectoryGroupMappingAction,
+  createNotificationRouteAction,
   createVerifiedDomainAction,
   createIdentityProviderAction,
   createIntegrationConnectionAction,
@@ -14,6 +15,7 @@ import {
   updateEnterpriseAuthSettingsAction,
   updateIdentityProviderStateAction,
   updateIntegrationConnectionStateAction,
+  updateNotificationRouteAction,
   updateProvisioningSettingsAction,
   updateVerifiedDomainAction,
   validateIdentityProviderAction,
@@ -440,6 +442,201 @@ export default async function OrganizationSettingsPage() {
               </Button>
               {data.enterprise.identityProviders.length === 0 ? (
                 <p className="mt-2 text-sm text-muted-foreground">Add an identity provider before creating directory group mappings.</p>
+              ) : null}
+            </div>
+          </form>
+        </CardBody>
+      </Card>
+      <Card>
+        <CardHeader>
+          <div className="space-y-2">
+            <h2 className="text-lg font-semibold">External notification routes</h2>
+            <p className="text-sm text-muted-foreground">Route assignment, blocker, reminder, and report events into Microsoft Teams or Google Chat through your configured enterprise integrations.</p>
+          </div>
+        </CardHeader>
+        <CardBody className="space-y-5">
+          {data.enterprise.notificationRoutes.length > 0 ? (
+            <div className="space-y-3">
+              {data.enterprise.notificationRoutes.map((route) => {
+                const integration = data.enterprise.integrations.find((item) => item.id === route.integrationConnectionId);
+
+                return (
+                  <div key={route.id} className="rounded-[0.8rem] border border-border bg-surface p-4">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="space-y-1">
+                        <p className="font-medium">{route.destinationLabel}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {formatValue(route.notificationType)} via {integration?.name ?? "Unknown integration"} to {formatValue(route.targetType)}
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <Badge variant={route.isActive ? "success" : "neutral"}>{route.isActive ? "Active" : "Paused"}</Badge>
+                        {route.sendDailyDigest ? <Badge variant="accent">Daily digest</Badge> : null}
+                      </div>
+                    </div>
+                    <p className="mt-3 text-sm text-muted-foreground">Destination reference: {route.destinationReference}</p>
+                    {route.lastDeliveredAtUtc ? (
+                      <p className="mt-2 text-xs text-muted-foreground">Last delivered {new Date(route.lastDeliveredAtUtc).toLocaleString()}</p>
+                    ) : null}
+                    {route.lastDeliveryError ? <p className="mt-2 text-xs text-danger">{route.lastDeliveryError}</p> : null}
+                    <details className="mt-3 rounded-[0.7rem] border border-border bg-surface-2 p-3">
+                      <summary className="cursor-pointer text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                        Edit route
+                      </summary>
+                      <form action={updateNotificationRouteAction} className="mt-3 grid gap-3 lg:grid-cols-2">
+                        <input type="hidden" name="organizationId" value={data.organization.id} />
+                        <input type="hidden" name="notificationRouteId" value={route.id} />
+                        <input type="hidden" name="isActive" value={route.isActive ? "true" : "false"} />
+                        <input type="hidden" name="sendDailyDigest" value={route.sendDailyDigest ? "true" : "false"} />
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium" htmlFor={`route-integration-${route.id}`}>
+                            Integration connection
+                          </label>
+                          <select
+                            id={`route-integration-${route.id}`}
+                            name="integrationConnectionId"
+                            defaultValue={route.integrationConnectionId}
+                            className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-foreground shadow-sm"
+                          >
+                            {data.enterprise.integrations
+                              .filter((integrationOption) => integrationOption.providerType !== "Slack")
+                              .map((integrationOption) => (
+                                <option key={integrationOption.id} value={integrationOption.id}>
+                                  {integrationOption.name}
+                                </option>
+                              ))}
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium" htmlFor={`route-type-${route.id}`}>
+                            Notification event
+                          </label>
+                          <select
+                            id={`route-type-${route.id}`}
+                            name="notificationType"
+                            defaultValue={toNotificationTypeValue(route.notificationType)}
+                            className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-foreground shadow-sm"
+                          >
+                            <option value="1">Assignment</option>
+                            <option value="3">Mention</option>
+                            <option value="4">Reminder</option>
+                            <option value="5">Report</option>
+                            <option value="6">System</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium" htmlFor={`route-target-${route.id}`}>
+                            Destination type
+                          </label>
+                          <select
+                            id={`route-target-${route.id}`}
+                            name="targetType"
+                            defaultValue={toNotificationTargetTypeValue(route.targetType)}
+                            className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-foreground shadow-sm"
+                          >
+                            <option value="1">Teams channel</option>
+                            <option value="2">Google Chat space</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium" htmlFor={`route-destination-reference-${route.id}`}>
+                            Destination reference
+                          </label>
+                          <Input id={`route-destination-reference-${route.id}`} name="destinationReference" defaultValue={route.destinationReference} />
+                        </div>
+                        <div className="space-y-2 lg:col-span-2">
+                          <label className="text-xs font-medium" htmlFor={`route-destination-label-${route.id}`}>
+                            Destination label
+                          </label>
+                          <Input id={`route-destination-label-${route.id}`} name="destinationLabel" defaultValue={route.destinationLabel} />
+                        </div>
+                        <div className="flex flex-col justify-end gap-2 pb-1">
+                          <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <input type="checkbox" name="isActive" className="h-4 w-4 rounded border-border" defaultChecked={route.isActive} />
+                            Route active
+                          </label>
+                          <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <input type="checkbox" name="sendDailyDigest" className="h-4 w-4 rounded border-border" defaultChecked={route.sendDailyDigest} />
+                            Send daily digest
+                          </label>
+                        </div>
+                        <div className="lg:col-span-2">
+                          <Button type="submit" size="sm">Save route</Button>
+                        </div>
+                      </form>
+                    </details>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="rounded-[0.7rem] border border-dashed border-border bg-surface p-4 text-sm text-muted-foreground">
+              No Teams or Google Chat notification routes configured yet.
+            </div>
+          )}
+          <form action={createNotificationRouteAction} className="grid gap-4 rounded-[0.8rem] border border-border bg-surface p-4 lg:grid-cols-2">
+            <input type="hidden" name="organizationId" value={data.organization.id} />
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="notification-route-integration">
+                Integration connection
+              </label>
+              <select id="notification-route-integration" name="integrationConnectionId" className="w-full rounded-xl border border-border bg-surface-2 px-4 py-3 text-sm text-foreground shadow-sm">
+                {data.enterprise.integrations
+                  .filter((integration) => integration.providerType !== "Slack")
+                  .map((integration) => (
+                    <option key={integration.id} value={integration.id}>
+                      {integration.name}
+                    </option>
+                  ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="notification-route-type">
+                Notification event
+              </label>
+              <select id="notification-route-type" name="notificationType" defaultValue="1" className="w-full rounded-xl border border-border bg-surface-2 px-4 py-3 text-sm text-foreground shadow-sm">
+                <option value="1">Assignment</option>
+                <option value="3">Mention</option>
+                <option value="4">Reminder</option>
+                <option value="5">Report</option>
+                <option value="6">System</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="notification-route-target">
+                Destination type
+              </label>
+              <select id="notification-route-target" name="targetType" defaultValue="1" className="w-full rounded-xl border border-border bg-surface-2 px-4 py-3 text-sm text-foreground shadow-sm">
+                <option value="1">Teams channel</option>
+                <option value="2">Google Chat space</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="notification-route-reference">
+                Destination reference
+              </label>
+              <Input id="notification-route-reference" name="destinationReference" placeholder="channel-id or spaces/AAAA..." />
+            </div>
+            <div className="space-y-2 lg:col-span-2">
+              <label className="text-sm font-medium" htmlFor="notification-route-label">
+                Destination label
+              </label>
+              <Input id="notification-route-label" name="destinationLabel" placeholder="Ops leadership channel" />
+            </div>
+            <label className="flex items-center gap-2 text-sm text-muted-foreground">
+              <input type="checkbox" name="isActive" className="h-4 w-4 rounded border-border" defaultChecked />
+              Activate route
+            </label>
+            <label className="flex items-center gap-2 text-sm text-muted-foreground">
+              <input type="checkbox" name="sendDailyDigest" className="h-4 w-4 rounded border-border" />
+              Send daily digest
+            </label>
+            <div className="lg:col-span-2">
+              <Button type="submit" disabled={data.enterprise.integrations.filter((integration) => integration.providerType !== "Slack").length === 0}>
+                Add notification route
+              </Button>
+              {data.enterprise.integrations.filter((integration) => integration.providerType !== "Slack").length === 0 ? (
+                <p className="mt-2 text-sm text-muted-foreground">Add a Microsoft 365 or Google Workspace integration before creating external notification routes.</p>
               ) : null}
             </div>
           </form>
@@ -1151,5 +1348,29 @@ function toPlatformRoleValue(value: string) {
       return "5";
     default:
       return "4";
+  }
+}
+
+function toNotificationTypeValue(value: string) {
+  switch (value) {
+    case "Assignment":
+      return "1";
+    case "Mention":
+      return "3";
+    case "Reminder":
+      return "4";
+    case "Report":
+      return "5";
+    default:
+      return "6";
+  }
+}
+
+function toNotificationTargetTypeValue(value: string) {
+  switch (value) {
+    case "GoogleChatSpace":
+      return "2";
+    default:
+      return "1";
   }
 }

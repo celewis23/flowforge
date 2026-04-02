@@ -44,6 +44,7 @@ public class MsrCommandCenterDbContext : IdentityDbContext<ApplicationUser, Iden
     public DbSet<OrganizationProvisioningSettings> OrganizationProvisioningSettings => Set<OrganizationProvisioningSettings>();
     public DbSet<OrganizationProvisioningJob> OrganizationProvisioningJobs => Set<OrganizationProvisioningJob>();
     public DbSet<OrganizationDirectoryGroupMapping> OrganizationDirectoryGroupMappings => Set<OrganizationDirectoryGroupMapping>();
+    public DbSet<OrganizationNotificationRoute> OrganizationNotificationRoutes => Set<OrganizationNotificationRoute>();
     public DbSet<ExternalIdentityLink> ExternalIdentityLinks => Set<ExternalIdentityLink>();
     public DbSet<EnterpriseAuthSession> EnterpriseAuthSessions => Set<EnterpriseAuthSession>();
 
@@ -88,6 +89,7 @@ public class MsrCommandCenterDbContext : IdentityDbContext<ApplicationUser, Iden
         builder.Entity<OrganizationProvisioningJob>().HasIndex(x => new { x.OrganizationId, x.StartedAtUtc });
         builder.Entity<OrganizationDirectoryGroupMapping>().HasIndex(x => new { x.OrganizationId, x.IdentityProviderId, x.ExternalGroupId }).IsUnique();
         builder.Entity<OrganizationDirectoryGroupMapping>().HasIndex(x => new { x.OrganizationId, x.TeamId, x.ExternalGroupName });
+        builder.Entity<OrganizationNotificationRoute>().HasIndex(x => new { x.OrganizationId, x.IntegrationConnectionId, x.NotificationType, x.DestinationReference }).IsUnique();
         builder.Entity<ExternalIdentityLink>().HasIndex(x => new { x.OrganizationId, x.ProviderType, x.ExternalSubject }).IsUnique();
         builder.Entity<ExternalIdentityLink>().HasIndex(x => new { x.OrganizationId, x.UserId, x.ProviderType }).IsUnique();
         builder.Entity<EnterpriseAuthSession>().HasIndex(x => x.StateToken).IsUnique();
@@ -136,6 +138,12 @@ public class MsrCommandCenterDbContext : IdentityDbContext<ApplicationUser, Iden
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.Entity<Organization>()
+            .HasMany(x => x.NotificationRoutes)
+            .WithOne(x => x.Organization)
+            .HasForeignKey(x => x.OrganizationId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<Organization>()
             .HasMany(x => x.ExternalIdentityLinks)
             .WithOne(x => x.Organization)
             .HasForeignKey(x => x.OrganizationId)
@@ -157,6 +165,12 @@ public class MsrCommandCenterDbContext : IdentityDbContext<ApplicationUser, Iden
             .HasOne(x => x.Team)
             .WithMany(x => x.DirectoryGroupMappings)
             .HasForeignKey(x => x.TeamId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<OrganizationNotificationRoute>()
+            .HasOne(x => x.IntegrationConnection)
+            .WithMany()
+            .HasForeignKey(x => x.IntegrationConnectionId)
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.Entity<Board>()

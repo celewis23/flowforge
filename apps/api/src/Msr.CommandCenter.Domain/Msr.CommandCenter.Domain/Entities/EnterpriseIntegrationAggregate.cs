@@ -112,6 +112,21 @@ public class OrganizationDirectoryGroupMapping : TenantEntity
     public Team? Team { get; set; }
 }
 
+public class OrganizationNotificationRoute : TenantEntity
+{
+    public Guid IntegrationConnectionId { get; set; }
+    public NotificationType NotificationType { get; set; } = NotificationType.System;
+    public ExternalNotificationTargetType TargetType { get; set; } = ExternalNotificationTargetType.TeamsChannel;
+    public string DestinationReference { get; set; } = string.Empty;
+    public string DestinationLabel { get; set; } = string.Empty;
+    public bool IsActive { get; set; } = true;
+    public bool SendDailyDigest { get; set; }
+    public DateTime? LastDeliveredAtUtc { get; set; }
+    public string LastDeliveryError { get; set; } = string.Empty;
+    public Organization? Organization { get; set; }
+    public OrganizationIntegrationConnection? IntegrationConnection { get; set; }
+}
+
 public class ExternalIdentityLink : TenantEntity
 {
     public Guid UserId { get; set; }

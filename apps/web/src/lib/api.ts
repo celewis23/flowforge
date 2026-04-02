@@ -145,6 +145,19 @@ type OrganizationDirectoryGroupMappingDto = {
   lastSyncedAtUtc?: string | null;
   lastSyncError: string;
 };
+type OrganizationNotificationRouteDto = {
+  id: string;
+  organizationId: string;
+  integrationConnectionId: string;
+  notificationType: string;
+  targetType: string;
+  destinationReference: string;
+  destinationLabel: string;
+  isActive: boolean;
+  sendDailyDigest: boolean;
+  lastDeliveredAtUtc?: string | null;
+  lastDeliveryError: string;
+};
 type OrganizationEnterpriseSettingsDto = {
   authentication: OrganizationAuthenticationSettingsDto;
   identityProviders: OrganizationIdentityProviderDto[];
@@ -153,6 +166,7 @@ type OrganizationEnterpriseSettingsDto = {
   provisioning: OrganizationProvisioningSettingsDto;
   provisioningJobs: OrganizationProvisioningJobDto[];
   directoryGroupMappings: OrganizationDirectoryGroupMappingDto[];
+  notificationRoutes: OrganizationNotificationRouteDto[];
 };
 
 async function apiFetch<T>(path: string): Promise<T> {
@@ -817,6 +831,7 @@ async function getEnterpriseSettingsData(organizationId: string) {
       },
       provisioningJobs: [],
       directoryGroupMappings: [],
+      notificationRoutes: [],
     } satisfies OrganizationEnterpriseSettingsDto;
   }
 }

@@ -142,3 +142,9 @@ public enum ProvisioningJobStatus
     Succeeded = 2,
     Failed = 3
 }
+
+public enum ExternalNotificationTargetType
+{
+    TeamsChannel = 1,
+    GoogleChatSpace = 2
+}

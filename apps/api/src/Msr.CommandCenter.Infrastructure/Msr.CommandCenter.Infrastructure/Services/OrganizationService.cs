@@ -107,6 +107,12 @@ public class OrganizationService : IOrganizationService
             .OrderByDescending(x => x.IsActive)
             .ThenBy(x => x.ExternalGroupName)
             .ToListAsync(cancellationToken);
+        var notificationRoutes = await _dbContext.OrganizationNotificationRoutes
+            .Where(x => x.OrganizationId == organizationId)
+            .OrderByDescending(x => x.IsActive)
+            .ThenBy(x => x.NotificationType)
+            .ThenBy(x => x.DestinationLabel)
+            .ToListAsync(cancellationToken);
 
         return new OrganizationEnterpriseSettingsDto(
             MapAuthenticationSettings(auth),
@@ -115,7 +121,8 @@ public class OrganizationService : IOrganizationService
             verifiedDomains.Select(MapVerifiedDomain).ToList(),
             MapProvisioningSettings(provisioning),
             provisioningJobs.Select(MapProvisioningJob).ToList(),
-            directoryGroupMappings.Select(MapDirectoryGroupMapping).ToList());
+            directoryGroupMappings.Select(MapDirectoryGroupMapping).ToList(),
+            notificationRoutes.Select(MapNotificationRoute).ToList());
     }
 
     public async Task<OrganizationAuthenticationSettingsDto> UpdateAuthenticationSettingsAsync(Guid organizationId, UpdateOrganizationAuthenticationSettingsRequest request, CancellationToken cancellationToken)
@@ -429,6 +436,75 @@ public class OrganizationService : IOrganizationService
         return MapDirectoryGroupMapping(mapping);
     }
 
+    public async Task<OrganizationNotificationRouteDto> UpsertNotificationRouteAsync(Guid organizationId, UpsertOrganizationNotificationRouteRequest request, CancellationToken cancellationToken)
+    {
+        var integration = await _dbContext.OrganizationIntegrationConnections
+            .Where(x => x.OrganizationId == organizationId && x.Id == request.IntegrationConnectionId)
+            .SingleOrDefaultAsync(cancellationToken)
+            ?? throw new InvalidOperationException("The selected integration connection does not belong to this organization.");
+
+        if (integration.ProviderType == IntegrationProviderType.Slack)
+        {
+            throw new InvalidOperationException("Use Microsoft 365 or Google Workspace connections for enterprise chat routing.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.DestinationReference))
+        {
+            throw new InvalidOperationException("A destination reference is required.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.DestinationLabel))
+        {
+            throw new InvalidOperationException("A destination label is required.");
+        }
+
+        if (integration.ProviderType == IntegrationProviderType.Microsoft365 && request.TargetType != ExternalNotificationTargetType.TeamsChannel)
+        {
+            throw new InvalidOperationException("Microsoft 365 routes must target a Teams channel.");
+        }
+
+        if (integration.ProviderType == IntegrationProviderType.GoogleWorkspace && request.TargetType != ExternalNotificationTargetType.GoogleChatSpace)
+        {
+            throw new InvalidOperationException("Google Workspace routes must target a Google Chat space.");
+        }
+
+        OrganizationNotificationRoute route;
+        if (request.NotificationRouteId.HasValue)
+        {
+            route = await _dbContext.OrganizationNotificationRoutes
+                .Where(x => x.OrganizationId == organizationId && x.Id == request.NotificationRouteId.Value)
+                .SingleAsync(cancellationToken);
+        }
+        else
+        {
+            route = new OrganizationNotificationRoute
+            {
+                OrganizationId = organizationId
+            };
+            _dbContext.OrganizationNotificationRoutes.Add(route);
+        }
+
+        route.IntegrationConnectionId = integration.Id;
+        route.NotificationType = request.NotificationType;
+        route.TargetType = request.TargetType;
+        route.DestinationReference = request.DestinationReference.Trim();
+        route.DestinationLabel = request.DestinationLabel.Trim();
+        route.IsActive = request.IsActive;
+        route.SendDailyDigest = request.SendDailyDigest;
+        route.LastDeliveryError = string.Empty;
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        await WriteEnterpriseAuditAsync(
+            organizationId,
+            "NotificationRouteUpserted",
+            "OrganizationNotificationRoute",
+            route.Id.ToString(),
+            $"Mapped {route.NotificationType} notifications to {route.TargetType} destination '{route.DestinationLabel}' via {integration.Name}.",
+            cancellationToken);
+
+        return MapNotificationRoute(route);
+    }
+
     private async Task<OrganizationAuthenticationSettings> EnsureAuthenticationSettingsAsync(Guid organizationId, CancellationToken cancellationToken)
     {
         var settings = await _dbContext.OrganizationAuthenticationSettings
@@ -599,6 +675,20 @@ public class OrganizationService : IOrganizationService
             mapping.SyncMembers,
             mapping.LastSyncedAtUtc,
             mapping.LastSyncError);
+
+    private static OrganizationNotificationRouteDto MapNotificationRoute(OrganizationNotificationRoute route) =>
+        new(
+            route.Id,
+            route.OrganizationId,
+            route.IntegrationConnectionId,
+            route.NotificationType.ToString(),
+            route.TargetType.ToString(),
+            route.DestinationReference,
+            route.DestinationLabel,
+            route.IsActive,
+            route.SendDailyDigest,
+            route.LastDeliveredAtUtc,
+            route.LastDeliveryError);
 
     private static string GenerateChallengeToken() =>
         $"flowforge-verification={Convert.ToHexString(Guid.NewGuid().ToByteArray()).ToLowerInvariant()}";

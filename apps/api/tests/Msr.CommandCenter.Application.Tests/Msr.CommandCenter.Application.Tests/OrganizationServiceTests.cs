@@ -151,6 +151,57 @@ public class OrganizationServiceTests
         Assert.True(result.SyncMembers);
     }
 
+    [Fact]
+    public async Task UpsertNotificationRouteAsync_CreatesEnterpriseChatRoute()
+    {
+        await using var dbContext = CreateDbContext();
+        var organizationId = Guid.NewGuid();
+        var integrationId = Guid.NewGuid();
+
+        dbContext.Organizations.Add(new Organization
+        {
+            Id = organizationId,
+            Name = "FlowForge Healthcare",
+            Slug = "flowforge-healthcare",
+            Domain = "health.example.com",
+            DefaultCadence = "Monthly"
+        });
+
+        dbContext.OrganizationIntegrationConnections.Add(new OrganizationIntegrationConnection
+        {
+            Id = integrationId,
+            OrganizationId = organizationId,
+            Name = "Contoso Microsoft 365",
+            ProviderType = IntegrationProviderType.Microsoft365,
+            ClientId = "m365-client",
+            ClientSecretReference = "m365-secret",
+            TenantIdentifier = "tenant-id",
+            Status = IntegrationConnectionStatus.Active
+        });
+
+        await dbContext.SaveChangesAsync();
+
+        var service = new OrganizationService(dbContext);
+        var result = await service.UpsertNotificationRouteAsync(
+            organizationId,
+            new UpsertOrganizationNotificationRouteRequest(
+                null,
+                integrationId,
+                NotificationType.Assignment,
+                ExternalNotificationTargetType.TeamsChannel,
+                "19:ops@thread.tacv2",
+                "Operations Leadership",
+                true,
+                false),
+            CancellationToken.None);
+
+        Assert.Equal(integrationId, result.IntegrationConnectionId);
+        Assert.Equal("Assignment", result.NotificationType);
+        Assert.Equal("TeamsChannel", result.TargetType);
+        Assert.Equal("Operations Leadership", result.DestinationLabel);
+        Assert.True(result.IsActive);
+    }
+
     private static MsrCommandCenterDbContext CreateDbContext()
     {
         var options = new DbContextOptionsBuilder<MsrCommandCenterDbContext>()

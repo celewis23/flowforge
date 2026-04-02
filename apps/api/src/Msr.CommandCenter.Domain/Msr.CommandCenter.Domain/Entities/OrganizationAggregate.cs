@@ -24,6 +24,7 @@ public class Organization : BaseEntity
     public OrganizationProvisioningSettings? ProvisioningSettings { get; set; }
     public ICollection<OrganizationProvisioningJob> ProvisioningJobs { get; set; } = new List<OrganizationProvisioningJob>();
     public ICollection<OrganizationDirectoryGroupMapping> DirectoryGroupMappings { get; set; } = new List<OrganizationDirectoryGroupMapping>();
+    public ICollection<OrganizationNotificationRoute> NotificationRoutes { get; set; } = new List<OrganizationNotificationRoute>();
     public ICollection<ExternalIdentityLink> ExternalIdentityLinks { get; set; } = new List<ExternalIdentityLink>();
 }
 

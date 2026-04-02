@@ -88,4 +88,9 @@ public class OrganizationsController : ControllerBase
     [Authorize(Roles = "OrgAdmin,PlatformAdmin")]
     public Task<OrganizationDirectoryGroupMappingDto> UpsertDirectoryGroupMapping(Guid organizationId, UpsertOrganizationDirectoryGroupMappingRequest request, CancellationToken cancellationToken) =>
         _organizationService.UpsertDirectoryGroupMappingAsync(organizationId, request, cancellationToken);
+
+    [HttpPost("{organizationId:guid}/enterprise-settings/notification-routes")]
+    [Authorize(Roles = "OrgAdmin,PlatformAdmin")]
+    public Task<OrganizationNotificationRouteDto> UpsertNotificationRoute(Guid organizationId, UpsertOrganizationNotificationRouteRequest request, CancellationToken cancellationToken) =>
+        _organizationService.UpsertNotificationRouteAsync(organizationId, request, cancellationToken);
 }
