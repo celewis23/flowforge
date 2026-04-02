@@ -30,6 +30,37 @@ export default async function DashboardPage() {
           <Card>
             <CardHeader className="flex items-center justify-between gap-3">
               <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Enterprise integrations</p>
+                <h2 className="mt-2 text-lg font-semibold">Connected systems now visible in the demo</h2>
+              </div>
+              <Badge variant="accent">{data.integrationSignals.connectedProviders} providers connected</Badge>
+            </CardHeader>
+            <CardBody className="grid gap-3 md:grid-cols-4">
+              <IntegrationStat
+                label="Profile sync"
+                value={data.integrationSignals.lastProfileSyncAt ? formatDate(data.integrationSignals.lastProfileSyncAt) : "Ready"}
+                detail="Google Workspace directory enrichment"
+              />
+              <IntegrationStat
+                label="Chat routes"
+                value={data.integrationSignals.notificationRoutes.toString()}
+                detail="Teams / Google Chat notification paths"
+              />
+              <IntegrationStat
+                label="Export targets"
+                value={data.integrationSignals.exportDestinations.toString()}
+                detail="Drive / SharePoint destinations"
+              />
+              <IntegrationStat
+                label="Calendar syncs"
+                value={data.integrationSignals.calendarSyncs.toString()}
+                detail="Reporting deadlines synced outward"
+              />
+            </CardBody>
+          </Card>
+          <Card>
+            <CardHeader className="flex items-center justify-between gap-3">
+              <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Team capacity</p>
                 <h2 className="mt-2 text-lg font-semibold">Workload by person</h2>
               </div>
@@ -113,6 +144,16 @@ export default async function DashboardPage() {
         </div>
       </div>
     </PageShell>
+  );
+}
+
+function IntegrationStat({ label, value, detail }: { label: string; value: string; detail: string }) {
+  return (
+    <div className="rounded-[0.65rem] border border-accent/30 bg-surface-2 p-4">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">{label}</p>
+      <p className="mt-2 text-2xl font-semibold">{value}</p>
+      <p className="mt-1 text-sm text-muted-foreground">{detail}</p>
+    </div>
   );
 }
 

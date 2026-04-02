@@ -41,6 +41,10 @@ export default async function Home() {
               <Metric label="Teams" value={`${stats.teams}+`} detail="boards in sync" />
               <Metric label="MSR completion" value={`${stats.msrCompletion}%`} detail="report cycles on time" />
             </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Metric label="Enterprise providers" value={`${stats.connectedProviders}`} detail="Google Workspace and Microsoft connected" />
+              <Metric label="Profiles synced" value={`${stats.syncedProfiles}`} detail="Directory data enriching the demo workspace" />
+            </div>
           </div>
 
           <div className="space-y-4 sm:space-y-5">
@@ -104,7 +108,7 @@ export default async function Home() {
           </div>
         </section>
 
-        <section className="grid gap-4 lg:grid-cols-3">
+        <section className="grid gap-4 lg:grid-cols-4">
           {[
             {
               label: "01",
@@ -123,6 +127,12 @@ export default async function Home() {
               title: "One console for team-wide visibility",
               description:
                 "See the aggregated board, overdue work, blocked trends, and project health in one operating view built for managers and executives.",
+            },
+            {
+              label: "04",
+              title: "Google and Microsoft fit directly into the flow",
+              description:
+                "Demo tenants now show identity, profile sync, exports, notifications, and calendar-ready integration paths instead of generic placeholders.",
             },
           ].map((item) => (
             <Card key={item.title} className="h-full">
