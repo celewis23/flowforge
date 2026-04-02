@@ -169,6 +169,11 @@ public record UpsertOrganizationProfileSyncSettingRequest(
     bool SyncOfficeLocation,
     bool SyncProfilePhotos);
 
+public record TriggerOrganizationProfileSyncRequest(
+    Guid ProfileSyncSettingId,
+    string TriggeredBy,
+    string Summary);
+
 public record TriggerOrganizationProvisioningJobRequest(
     string TriggeredBy,
     string Summary);

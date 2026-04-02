@@ -22,4 +22,5 @@ public interface IOrganizationService
     Task<OrganizationExportDestinationDto> UpsertExportDestinationAsync(Guid organizationId, UpsertOrganizationExportDestinationRequest request, CancellationToken cancellationToken);
     Task<OrganizationCalendarSyncSettingDto> UpsertCalendarSyncSettingAsync(Guid organizationId, UpsertOrganizationCalendarSyncSettingRequest request, CancellationToken cancellationToken);
     Task<OrganizationProfileSyncSettingDto> UpsertProfileSyncSettingAsync(Guid organizationId, UpsertOrganizationProfileSyncSettingRequest request, CancellationToken cancellationToken);
+    Task<OrganizationProfileSyncJobDto> TriggerProfileSyncAsync(Guid organizationId, TriggerOrganizationProfileSyncRequest request, CancellationToken cancellationToken);
 }

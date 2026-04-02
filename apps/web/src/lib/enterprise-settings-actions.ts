@@ -409,3 +409,16 @@ export async function updateProfileSyncSettingAction(formData: FormData) {
 
   revalidatePath("/organization-settings");
 }
+
+export async function triggerProfileSyncAction(formData: FormData) {
+  const organizationId = String(formData.get("organizationId") ?? "");
+
+  await apiMutation(`/api/organizations/${organizationId}/enterprise-settings/profile-sync/jobs`, "POST", {
+    profileSyncSettingId: String(formData.get("profileSyncSettingId") ?? ""),
+    triggeredBy: String(formData.get("triggeredBy") ?? "OrgAdmin"),
+    summary: String(formData.get("summary") ?? "Directory profile sync requested from organization settings."),
+  });
+
+  revalidatePath("/organization-settings");
+  revalidatePath("/team-members");
+}

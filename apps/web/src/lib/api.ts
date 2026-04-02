@@ -213,6 +213,21 @@ type OrganizationProfileSyncSettingDto = {
   lastSyncedAtUtc?: string | null;
   lastSyncError: string;
 };
+type OrganizationProfileSyncJobDto = {
+  id: string;
+  organizationId: string;
+  profileSyncSettingId: string;
+  integrationConnectionId: string;
+  status: string;
+  triggeredBy: string;
+  summary: string;
+  usersProcessed: number;
+  usersMatched: number;
+  usersUpdated: number;
+  errorDetails: string;
+  startedAtUtc: string;
+  completedAtUtc?: string | null;
+};
 type OrganizationEnterpriseSettingsDto = {
   authentication: OrganizationAuthenticationSettingsDto;
   identityProviders: OrganizationIdentityProviderDto[];
@@ -225,6 +240,7 @@ type OrganizationEnterpriseSettingsDto = {
   exportDestinations: OrganizationExportDestinationDto[];
   calendarSyncSettings: OrganizationCalendarSyncSettingDto[];
   profileSyncSettings: OrganizationProfileSyncSettingDto[];
+  profileSyncJobs: OrganizationProfileSyncJobDto[];
 };
 
 async function apiFetch<T>(path: string): Promise<T> {
@@ -910,6 +926,7 @@ async function getEnterpriseSettingsData(organizationId: string) {
       exportDestinations: [],
       calendarSyncSettings: [],
       profileSyncSettings: [],
+      profileSyncJobs: [],
     } satisfies OrganizationEnterpriseSettingsDto;
   }
 }

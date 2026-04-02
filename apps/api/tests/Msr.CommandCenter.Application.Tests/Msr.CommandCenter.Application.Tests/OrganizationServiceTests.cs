@@ -369,11 +369,129 @@ public class OrganizationServiceTests
         Assert.True(result.SyncProfilePhotos);
     }
 
+    [Fact]
+    public async Task TriggerProfileSyncAsync_UpdatesMatchedUsersAndManagerHierarchy()
+    {
+        await using var dbContext = CreateDbContext();
+        var organizationId = Guid.NewGuid();
+        var integrationId = Guid.NewGuid();
+        var profileSettingId = Guid.NewGuid();
+        var managerId = Guid.NewGuid();
+        var teamMemberId = Guid.NewGuid();
+
+        dbContext.Organizations.Add(new Organization
+        {
+            Id = organizationId,
+            Name = "FlowForge Utilities",
+            Slug = "flowforge-utilities",
+            Domain = "utilities.example.com",
+            DefaultCadence = "Monthly"
+        });
+
+        dbContext.OrganizationIntegrationConnections.Add(new OrganizationIntegrationConnection
+        {
+            Id = integrationId,
+            OrganizationId = organizationId,
+            Name = "Utility Microsoft 365",
+            ProviderType = IntegrationProviderType.Microsoft365,
+            ClientId = "client-id",
+            ClientSecretReference = "secret-ref",
+            TenantIdentifier = "tenant-id",
+            Status = IntegrationConnectionStatus.Active
+        });
+
+        dbContext.OrganizationProfileSyncSettings.Add(new OrganizationProfileSyncSetting
+        {
+            Id = profileSettingId,
+            OrganizationId = organizationId,
+            IntegrationConnectionId = integrationId,
+            IsEnabled = true,
+            SyncJobTitles = true,
+            SyncDepartments = true,
+            SyncManagerHierarchy = true,
+            SyncOfficeLocation = true,
+            SyncProfilePhotos = true
+        });
+
+        dbContext.Users.AddRange(
+            new ApplicationUser
+            {
+                Id = managerId,
+                OrganizationId = organizationId,
+                Email = "manager@utilities.example.com",
+                UserName = "manager@utilities.example.com",
+                FullName = "Manager User",
+                ExternalEmployeeId = "mgr-001"
+            },
+            new ApplicationUser
+            {
+                Id = teamMemberId,
+                OrganizationId = organizationId,
+                Email = "operator@utilities.example.com",
+                UserName = "operator@utilities.example.com",
+                FullName = "Operator User",
+                ExternalEmployeeId = "emp-002"
+            });
+
+        await dbContext.SaveChangesAsync();
+
+        var syncService = new FakeEnterpriseDirectorySyncService(
+            new EnterpriseDirectoryProfileResult(
+                IntegrationProviderType.Microsoft365,
+                new[]
+                {
+                    new EnterpriseDirectoryUserProfile(
+                        "sub-operator",
+                        "operator@utilities.example.com",
+                        "Operator User",
+                        "Senior Operator",
+                        "Grid Operations",
+                        "Atlanta",
+                        "mgr-001",
+                        "https://cdn.example.com/operator.png",
+                        "emp-002")
+                }));
+
+        var service = new OrganizationService(dbContext, enterpriseDirectorySyncService: syncService);
+        var result = await service.TriggerProfileSyncAsync(
+            organizationId,
+            new TriggerOrganizationProfileSyncRequest(profileSettingId, "OrgAdmin", "Run directory sync."),
+            CancellationToken.None);
+
+        Assert.Equal("Succeeded", result.Status);
+        Assert.Equal(1, result.UsersProcessed);
+        Assert.Equal(1, result.UsersMatched);
+        Assert.Equal(1, result.UsersUpdated);
+
+        var updatedUser = await dbContext.Users.SingleAsync(x => x.Id == teamMemberId);
+        Assert.Equal("Senior Operator", updatedUser.JobTitle);
+        Assert.Equal("Grid Operations", updatedUser.Department);
+        Assert.Equal("Atlanta", updatedUser.OfficeLocation);
+        Assert.Equal("https://cdn.example.com/operator.png", updatedUser.ProfilePhotoUrl);
+        Assert.Equal(managerId, updatedUser.ManagerUserId);
+        Assert.NotNull(updatedUser.LastDirectorySyncAtUtc);
+    }
+
     private static MsrCommandCenterDbContext CreateDbContext()
     {
         var options = new DbContextOptionsBuilder<MsrCommandCenterDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString("N"))
             .Options;
         return new MsrCommandCenterDbContext(options);
+    }
+
+    private sealed class FakeEnterpriseDirectorySyncService : IEnterpriseDirectorySyncService
+    {
+        private readonly EnterpriseDirectoryProfileResult _result;
+
+        public FakeEnterpriseDirectorySyncService(EnterpriseDirectoryProfileResult result)
+        {
+            _result = result;
+        }
+
+        public bool SupportsProvider(string providerType) => true;
+
+        public Task<EnterpriseDirectoryProfileResult> FetchProfilesAsync(OrganizationIntegrationConnection integrationConnection, CancellationToken cancellationToken) =>
+            Task.FromResult(_result);
     }
 }

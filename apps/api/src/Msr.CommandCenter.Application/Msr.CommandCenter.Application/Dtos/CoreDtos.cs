@@ -303,6 +303,21 @@ public record OrganizationProfileSyncSettingDto(
     DateTime? LastSyncedAtUtc,
     string LastSyncError);
 
+public record OrganizationProfileSyncJobDto(
+    Guid Id,
+    Guid OrganizationId,
+    Guid ProfileSyncSettingId,
+    Guid IntegrationConnectionId,
+    string Status,
+    string TriggeredBy,
+    string Summary,
+    int UsersProcessed,
+    int UsersMatched,
+    int UsersUpdated,
+    string ErrorDetails,
+    DateTime StartedAtUtc,
+    DateTime? CompletedAtUtc);
+
 public record OrganizationEnterpriseSettingsDto(
     OrganizationAuthenticationSettingsDto Authentication,
     IReadOnlyCollection<OrganizationIdentityProviderDto> IdentityProviders,
@@ -314,7 +329,8 @@ public record OrganizationEnterpriseSettingsDto(
     IReadOnlyCollection<OrganizationNotificationRouteDto> NotificationRoutes,
     IReadOnlyCollection<OrganizationExportDestinationDto> ExportDestinations,
     IReadOnlyCollection<OrganizationCalendarSyncSettingDto> CalendarSyncSettings,
-    IReadOnlyCollection<OrganizationProfileSyncSettingDto> ProfileSyncSettings);
+    IReadOnlyCollection<OrganizationProfileSyncSettingDto> ProfileSyncSettings,
+    IReadOnlyCollection<OrganizationProfileSyncJobDto> ProfileSyncJobs);
 
 public record EnterpriseIdentityProviderOptionDto(
     Guid IdentityProviderId,

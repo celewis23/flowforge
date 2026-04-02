@@ -13,6 +13,7 @@ import {
   createVerifiedDomainAction,
   createIdentityProviderAction,
   createIntegrationConnectionAction,
+  triggerProfileSyncAction,
   triggerProvisioningJobAction,
   updateCalendarSyncSettingAction,
   updateDirectoryGroupMappingAction,
@@ -167,6 +168,15 @@ export default async function OrganizationSettingsPage() {
                       <p className="mt-2 text-xs text-muted-foreground">Last synced {new Date(setting.lastSyncedAtUtc).toLocaleString()}</p>
                     ) : null}
                     {setting.lastSyncError ? <p className="mt-2 text-xs text-danger">{setting.lastSyncError}</p> : null}
+                    <form action={triggerProfileSyncAction} className="mt-3 flex flex-wrap items-center gap-2">
+                      <input type="hidden" name="organizationId" value={data.organization.id} />
+                      <input type="hidden" name="profileSyncSettingId" value={setting.id} />
+                      <input type="hidden" name="triggeredBy" value="OrgAdmin" />
+                      <input type="hidden" name="summary" value={`Directory profile sync requested for ${integration?.name ?? "integration connection"}.`} />
+                      <Button type="submit" size="sm" variant="secondary">
+                        Run profile sync
+                      </Button>
+                    </form>
                     <details className="mt-3 rounded-[0.7rem] border border-border bg-surface-2 p-3">
                       <summary className="cursor-pointer text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                         Edit profile sync
@@ -283,6 +293,37 @@ export default async function OrganizationSettingsPage() {
               </Button>
             </div>
           </form>
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">Recent profile sync jobs</h3>
+            {data.enterprise.profileSyncJobs.length > 0 ? (
+              data.enterprise.profileSyncJobs.map((job) => {
+                const integration = data.enterprise.integrations.find((item) => item.id === job.integrationConnectionId);
+                return (
+                  <div key={job.id} className="rounded-[0.7rem] border border-border bg-surface p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="space-y-1">
+                        <p className="font-medium">{job.summary}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {integration?.name ?? "Directory integration"} started {new Date(job.startedAtUtc).toLocaleString()} by {job.triggeredBy}
+                        </p>
+                      </div>
+                      <Badge variant={job.status === "Succeeded" ? "success" : job.status === "Failed" ? "danger" : "neutral"}>
+                        {formatValue(job.status)}
+                      </Badge>
+                    </div>
+                    <p className="mt-3 text-sm text-muted-foreground">
+                      Processed {job.usersProcessed} records, matched {job.usersMatched}, updated {job.usersUpdated} users.
+                    </p>
+                    {job.errorDetails ? <p className="mt-2 text-sm text-danger">{job.errorDetails}</p> : null}
+                  </div>
+                );
+              })
+            ) : (
+              <div className="rounded-[0.7rem] border border-dashed border-border bg-surface p-4 text-sm text-muted-foreground">
+                No profile sync jobs have been recorded yet.
+              </div>
+            )}
+          </div>
         </CardBody>
       </Card>
       <Card>

@@ -33,8 +33,10 @@ public static class DependencyInjection
             .AddSignInManager();
 
         services.AddHttpClient(nameof(EnterpriseOidcService));
+        services.AddHttpClient(nameof(EnterpriseDirectorySyncService));
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IEnterpriseOidcService, EnterpriseOidcService>();
+        services.AddScoped<IEnterpriseDirectorySyncService, EnterpriseDirectorySyncService>();
         services.AddScoped<IOrganizationService, OrganizationService>();
         services.AddScoped<IWorkManagementService, WorkManagementService>();
         services.AddScoped<IReportingService, ReportingService>();

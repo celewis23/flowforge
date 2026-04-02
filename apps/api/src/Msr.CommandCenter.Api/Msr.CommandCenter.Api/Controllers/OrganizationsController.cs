@@ -108,4 +108,9 @@ public class OrganizationsController : ControllerBase
     [Authorize(Roles = "OrgAdmin,PlatformAdmin")]
     public Task<OrganizationProfileSyncSettingDto> UpsertProfileSyncSetting(Guid organizationId, UpsertOrganizationProfileSyncSettingRequest request, CancellationToken cancellationToken) =>
         _organizationService.UpsertProfileSyncSettingAsync(organizationId, request, cancellationToken);
+
+    [HttpPost("{organizationId:guid}/enterprise-settings/profile-sync/jobs")]
+    [Authorize(Roles = "OrgAdmin,PlatformAdmin")]
+    public Task<OrganizationProfileSyncJobDto> TriggerProfileSync(Guid organizationId, TriggerOrganizationProfileSyncRequest request, CancellationToken cancellationToken) =>
+        _organizationService.TriggerProfileSyncAsync(organizationId, request, cancellationToken);
 }

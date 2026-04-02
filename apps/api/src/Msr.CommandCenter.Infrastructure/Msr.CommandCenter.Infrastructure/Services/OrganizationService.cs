@@ -11,11 +11,16 @@ public class OrganizationService : IOrganizationService
 {
     private readonly MsrCommandCenterDbContext _dbContext;
     private readonly IEnterpriseOidcService? _enterpriseOidcService;
+    private readonly IEnterpriseDirectorySyncService? _enterpriseDirectorySyncService;
 
-    public OrganizationService(MsrCommandCenterDbContext dbContext, IEnterpriseOidcService? enterpriseOidcService = null)
+    public OrganizationService(
+        MsrCommandCenterDbContext dbContext,
+        IEnterpriseOidcService? enterpriseOidcService = null,
+        IEnterpriseDirectorySyncService? enterpriseDirectorySyncService = null)
     {
         _dbContext = dbContext;
         _enterpriseOidcService = enterpriseOidcService;
+        _enterpriseDirectorySyncService = enterpriseDirectorySyncService;
     }
 
     public async Task<IReadOnlyCollection<OrganizationSummaryDto>> GetOrganizationsAsync(CancellationToken cancellationToken)
@@ -130,6 +135,11 @@ public class OrganizationService : IOrganizationService
             .OrderByDescending(x => x.IsEnabled)
             .ThenBy(x => x.CreatedAtUtc)
             .ToListAsync(cancellationToken);
+        var profileSyncJobs = await _dbContext.OrganizationProfileSyncJobs
+            .Where(x => x.OrganizationId == organizationId)
+            .OrderByDescending(x => x.StartedAtUtc)
+            .Take(10)
+            .ToListAsync(cancellationToken);
 
         return new OrganizationEnterpriseSettingsDto(
             MapAuthenticationSettings(auth),
@@ -142,7 +152,8 @@ public class OrganizationService : IOrganizationService
             notificationRoutes.Select(MapNotificationRoute).ToList(),
             exportDestinations.Select(MapExportDestination).ToList(),
             calendarSyncSettings.Select(MapCalendarSyncSetting).ToList(),
-            profileSyncSettings.Select(MapProfileSyncSetting).ToList());
+            profileSyncSettings.Select(MapProfileSyncSetting).ToList(),
+            profileSyncJobs.Select(MapProfileSyncJob).ToList());
     }
 
     public async Task<OrganizationAuthenticationSettingsDto> UpdateAuthenticationSettingsAsync(Guid organizationId, UpdateOrganizationAuthenticationSettingsRequest request, CancellationToken cancellationToken)
@@ -743,6 +754,87 @@ public class OrganizationService : IOrganizationService
         return MapProfileSyncSetting(setting);
     }
 
+    public async Task<OrganizationProfileSyncJobDto> TriggerProfileSyncAsync(Guid organizationId, TriggerOrganizationProfileSyncRequest request, CancellationToken cancellationToken)
+    {
+        var setting = await _dbContext.OrganizationProfileSyncSettings
+            .Include(x => x.IntegrationConnection)
+            .Where(x => x.OrganizationId == organizationId && x.Id == request.ProfileSyncSettingId)
+            .SingleOrDefaultAsync(cancellationToken)
+            ?? throw new InvalidOperationException("The selected profile sync setting does not belong to this organization.");
+
+        if (!setting.IsEnabled)
+        {
+            throw new InvalidOperationException("Enable the profile sync setting before triggering a sync.");
+        }
+
+        var integration = setting.IntegrationConnection
+            ?? throw new InvalidOperationException("The selected profile sync setting is missing its integration connection.");
+
+        if (_enterpriseDirectorySyncService is null || !_enterpriseDirectorySyncService.SupportsProvider(integration.ProviderType.ToString()))
+        {
+            throw new InvalidOperationException($"Provider '{integration.ProviderType}' does not currently support profile sync execution.");
+        }
+
+        var job = new OrganizationProfileSyncJob
+        {
+            OrganizationId = organizationId,
+            ProfileSyncSettingId = setting.Id,
+            IntegrationConnectionId = integration.Id,
+            Status = ProvisioningJobStatus.Pending,
+            TriggeredBy = string.IsNullOrWhiteSpace(request.TriggeredBy) ? "OrgAdmin" : request.TriggeredBy.Trim(),
+            Summary = string.IsNullOrWhiteSpace(request.Summary)
+                ? "Directory profile sync requested from admin console."
+                : request.Summary.Trim(),
+            StartedAtUtc = DateTime.UtcNow
+        };
+
+        _dbContext.OrganizationProfileSyncJobs.Add(job);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        try
+        {
+            var directoryResult = await _enterpriseDirectorySyncService.FetchProfilesAsync(integration, cancellationToken);
+            var users = await _dbContext.Users
+                .Where(x => x.OrganizationId == organizationId)
+                .ToListAsync(cancellationToken);
+            var externalIdentityLinks = await _dbContext.ExternalIdentityLinks
+                .Where(x => x.OrganizationId == organizationId)
+                .ToListAsync(cancellationToken);
+
+            var syncResult = ApplyDirectoryProfileUpdates(users, externalIdentityLinks, setting, directoryResult.Profiles);
+
+            job.Status = ProvisioningJobStatus.Succeeded;
+            job.UsersProcessed = directoryResult.Profiles.Count;
+            job.UsersMatched = syncResult.UsersMatched;
+            job.UsersUpdated = syncResult.UsersUpdated;
+            job.ErrorDetails = string.Empty;
+            job.CompletedAtUtc = DateTime.UtcNow;
+
+            setting.LastSyncedAtUtc = job.CompletedAtUtc;
+            setting.LastSyncError = string.Empty;
+            integration.LastSyncAtUtc = job.CompletedAtUtc;
+
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            await WriteEnterpriseAuditAsync(
+                organizationId,
+                "ProfileSyncTriggered",
+                "OrganizationProfileSyncJob",
+                job.Id.ToString(),
+                $"Profile sync via {integration.Name} processed {job.UsersProcessed} directory records and updated {job.UsersUpdated} users.",
+                cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            job.Status = ProvisioningJobStatus.Failed;
+            job.ErrorDetails = ex.Message;
+            job.CompletedAtUtc = DateTime.UtcNow;
+            setting.LastSyncError = ex.Message;
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        return MapProfileSyncJob(job);
+    }
+
     private async Task<OrganizationAuthenticationSettings> EnsureAuthenticationSettingsAsync(Guid organizationId, CancellationToken cancellationToken)
     {
         var settings = await _dbContext.OrganizationAuthenticationSettings
@@ -972,6 +1064,180 @@ public class OrganizationService : IOrganizationService
             setting.SyncProfilePhotos,
             setting.LastSyncedAtUtc,
             setting.LastSyncError);
+
+    private static OrganizationProfileSyncJobDto MapProfileSyncJob(OrganizationProfileSyncJob job) =>
+        new(
+            job.Id,
+            job.OrganizationId,
+            job.ProfileSyncSettingId,
+            job.IntegrationConnectionId,
+            job.Status.ToString(),
+            job.TriggeredBy,
+            job.Summary,
+            job.UsersProcessed,
+            job.UsersMatched,
+            job.UsersUpdated,
+            job.ErrorDetails,
+            job.StartedAtUtc,
+            job.CompletedAtUtc);
+
+    private static (int UsersMatched, int UsersUpdated) ApplyDirectoryProfileUpdates(
+        IReadOnlyCollection<ApplicationUser> users,
+        IReadOnlyCollection<ExternalIdentityLink> externalIdentityLinks,
+        OrganizationProfileSyncSetting setting,
+        IReadOnlyCollection<EnterpriseDirectoryUserProfile> directoryProfiles)
+    {
+        var usersByExternalEmployeeId = users
+            .Where(x => !string.IsNullOrWhiteSpace(x.ExternalEmployeeId))
+            .GroupBy(x => x.ExternalEmployeeId, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(x => x.Key, x => x.First(), StringComparer.OrdinalIgnoreCase);
+
+        var usersByEmail = users
+            .Where(x => !string.IsNullOrWhiteSpace(x.Email))
+            .GroupBy(x => x.Email!, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(x => x.Key, x => x.First(), StringComparer.OrdinalIgnoreCase);
+
+        var linksBySubject = externalIdentityLinks
+            .Where(x => !string.IsNullOrWhiteSpace(x.ExternalSubject))
+            .GroupBy(x => x.ExternalSubject, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(x => x.Key, x => x.First().UserId, StringComparer.OrdinalIgnoreCase);
+
+        var linksByEmail = externalIdentityLinks
+            .Where(x => !string.IsNullOrWhiteSpace(x.ExternalEmail))
+            .GroupBy(x => x.ExternalEmail, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(x => x.Key, x => x.First().UserId, StringComparer.OrdinalIgnoreCase);
+
+        var usersById = users.ToDictionary(x => x.Id);
+        var managerReferences = new List<(ApplicationUser User, string ManagerReference)>();
+        var usersMatched = 0;
+        var usersUpdated = 0;
+
+        foreach (var profile in directoryProfiles)
+        {
+            var user = ResolveUser(profile, usersByExternalEmployeeId, usersByEmail, linksBySubject, linksByEmail, usersById);
+            if (user is null)
+            {
+                continue;
+            }
+
+            usersMatched++;
+            var changed = false;
+
+            if (!string.IsNullOrWhiteSpace(profile.ExternalEmployeeId) && !string.Equals(user.ExternalEmployeeId, profile.ExternalEmployeeId, StringComparison.OrdinalIgnoreCase))
+            {
+                user.ExternalEmployeeId = profile.ExternalEmployeeId;
+                changed = true;
+            }
+
+            if (setting.SyncJobTitles && !string.Equals(user.JobTitle, profile.JobTitle, StringComparison.Ordinal))
+            {
+                user.JobTitle = profile.JobTitle;
+                changed = true;
+            }
+
+            if (setting.SyncDepartments && !string.Equals(user.Department, profile.Department, StringComparison.Ordinal))
+            {
+                user.Department = profile.Department;
+                changed = true;
+            }
+
+            if (setting.SyncOfficeLocation && !string.Equals(user.OfficeLocation, profile.OfficeLocation, StringComparison.Ordinal))
+            {
+                user.OfficeLocation = profile.OfficeLocation;
+                changed = true;
+            }
+
+            if (setting.SyncProfilePhotos && !string.Equals(user.ProfilePhotoUrl, profile.ProfilePhotoUrl, StringComparison.Ordinal))
+            {
+                user.ProfilePhotoUrl = profile.ProfilePhotoUrl;
+                changed = true;
+            }
+
+            if (setting.SyncManagerHierarchy)
+            {
+                user.ExternalManagerIdentifier = profile.ManagerExternalId;
+                managerReferences.Add((user, profile.ManagerExternalId));
+                changed = true;
+            }
+
+            user.LastDirectorySyncAtUtc = DateTime.UtcNow;
+
+            if (changed)
+            {
+                usersUpdated++;
+            }
+        }
+
+        if (setting.SyncManagerHierarchy)
+        {
+            var usersByEmployeeId = users
+                .Where(x => !string.IsNullOrWhiteSpace(x.ExternalEmployeeId))
+                .GroupBy(x => x.ExternalEmployeeId, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(x => x.Key, x => x.First(), StringComparer.OrdinalIgnoreCase);
+
+            var usersByUserEmail = users
+                .Where(x => !string.IsNullOrWhiteSpace(x.Email))
+                .GroupBy(x => x.Email!, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(x => x.Key, x => x.First(), StringComparer.OrdinalIgnoreCase);
+
+            foreach (var (user, managerReference) in managerReferences)
+            {
+                if (string.IsNullOrWhiteSpace(managerReference))
+                {
+                    user.ManagerUserId = null;
+                    continue;
+                }
+
+                if (usersByEmployeeId.TryGetValue(managerReference, out var managerByEmployeeId))
+                {
+                    user.ManagerUserId = managerByEmployeeId.Id;
+                    continue;
+                }
+
+                user.ManagerUserId = usersByUserEmail.TryGetValue(managerReference, out var managerByEmail)
+                    ? managerByEmail.Id
+                    : null;
+            }
+        }
+
+        return (usersMatched, usersUpdated);
+    }
+
+    private static ApplicationUser? ResolveUser(
+        EnterpriseDirectoryUserProfile profile,
+        IReadOnlyDictionary<string, ApplicationUser> usersByExternalEmployeeId,
+        IReadOnlyDictionary<string, ApplicationUser> usersByEmail,
+        IReadOnlyDictionary<string, Guid> linksBySubject,
+        IReadOnlyDictionary<string, Guid> linksByEmail,
+        IReadOnlyDictionary<Guid, ApplicationUser> usersById)
+    {
+        if (!string.IsNullOrWhiteSpace(profile.ExternalEmployeeId)
+            && usersByExternalEmployeeId.TryGetValue(profile.ExternalEmployeeId, out var byEmployeeId))
+        {
+            return byEmployeeId;
+        }
+
+        if (!string.IsNullOrWhiteSpace(profile.ExternalId)
+            && linksBySubject.TryGetValue(profile.ExternalId, out var linkedUserId)
+            && usersById.TryGetValue(linkedUserId, out var bySubject))
+        {
+            return bySubject;
+        }
+
+        if (!string.IsNullOrWhiteSpace(profile.Email) && usersByEmail.TryGetValue(profile.Email, out var byEmail))
+        {
+            return byEmail;
+        }
+
+        if (!string.IsNullOrWhiteSpace(profile.Email)
+            && linksByEmail.TryGetValue(profile.Email, out var linkedByEmailId)
+            && usersById.TryGetValue(linkedByEmailId, out var byLinkedEmail))
+        {
+            return byLinkedEmail;
+        }
+
+        return null;
+    }
 
     private static string GenerateChallengeToken() =>
         $"flowforge-verification={Convert.ToHexString(Guid.NewGuid().ToByteArray()).ToLowerInvariant()}";

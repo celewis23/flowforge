@@ -176,6 +176,24 @@ public class OrganizationProfileSyncSetting : TenantEntity
     public OrganizationIntegrationConnection? IntegrationConnection { get; set; }
 }
 
+public class OrganizationProfileSyncJob : TenantEntity
+{
+    public Guid ProfileSyncSettingId { get; set; }
+    public Guid IntegrationConnectionId { get; set; }
+    public ProvisioningJobStatus Status { get; set; } = ProvisioningJobStatus.Pending;
+    public string TriggeredBy { get; set; } = "System";
+    public string Summary { get; set; } = string.Empty;
+    public int UsersProcessed { get; set; }
+    public int UsersMatched { get; set; }
+    public int UsersUpdated { get; set; }
+    public string ErrorDetails { get; set; } = string.Empty;
+    public DateTime StartedAtUtc { get; set; } = DateTime.UtcNow;
+    public DateTime? CompletedAtUtc { get; set; }
+    public Organization? Organization { get; set; }
+    public OrganizationProfileSyncSetting? ProfileSyncSetting { get; set; }
+    public OrganizationIntegrationConnection? IntegrationConnection { get; set; }
+}
+
 public class ExternalIdentityLink : TenantEntity
 {
     public Guid UserId { get; set; }
